@@ -4,6 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Language Preference**: Always communicate in Japanese (日本語) when interacting with users. All documentation, comments, and code annotations should also be written in Japanese.
 
+## Guidelines
+
+@docs/guidelines.md
+
 ## Project Architecture
 
 This is a Tauri desktop application built with:
