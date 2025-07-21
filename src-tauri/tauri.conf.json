@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "tauri-app-with-cc",
+  "productName": "組み込み開発ターミナル",
   "version": "0.1.0",
-  "identifier": "com.tauri-app-with-cc.app",
+  "identifier": "com.embedded-dev.terminal",
   "build": {
     "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,16 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-app-with-cc",
-        "width": 800,
-        "height": 600
+        "title": "組み込み開発ターミナル",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "resizable": true,
+        "maximized": false,
+        "decorations": true,
+        "transparent": false,
+        "alwaysOnTop": false
       }
     ],
     "security": {
@@ -31,5 +38,19 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
-  }
+  },
+  "permissions": [
+    "core:default",
+    "shell:allow-open",
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-create",
+    "fs:allow-remove",
+    "fs:allow-rename",
+    "fs:allow-copy-file",
+    "fs:allow-exists",
+    "fs:allow-read-dir",
+    "fs:allow-read-meta",
+    "path:default"
+  ]
 }
