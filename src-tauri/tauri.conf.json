@@ -38,19 +38,5 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
-  },
-  "permissions": [
-    "core:default",
-    "shell:allow-open",
-    "fs:allow-read-text-file",
-    "fs:allow-write-text-file",
-    "fs:allow-create",
-    "fs:allow-remove",
-    "fs:allow-rename",
-    "fs:allow-copy-file",
-    "fs:allow-exists",
-    "fs:allow-read-dir",
-    "fs:allow-read-meta",
-    "path:default"
-  ]
+  }
 }
