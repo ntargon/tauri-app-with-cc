@@ -1,156 +1,401 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+	import { onMount } from 'svelte';
+	import { app, notifications } from '$lib/stores';
+	import ConnectionPanel from '$lib/components/ConnectionPanel/ConnectionPanel.svelte';
+	import Terminal from '$lib/components/Terminal/Terminal.svelte';
 
-  let name = $state("");
-  let greetMsg = $state("");
+	// アプリケーション状態
+	let isInitialized = false;
+	let initError: string | null = null;
 
-  async function greet(event: Event) {
-    event.preventDefault();
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    greetMsg = await invoke("greet", { name });
-  }
+	// レイアウト状態
+	let sidebarCollapsed = false;
+	let sidebarWidth = 350; // px
+
+	// コンポーネントマウント時にアプリを初期化
+	onMount(async () => {
+		try {
+			await app.initialize();
+			isInitialized = true;
+		} catch (error) {
+			console.error('アプリケーション初期化エラー:', error);
+			initError = error instanceof Error ? error.message : 'アプリケーションの初期化に失敗しました';
+		}
+	});
+
+	// サイドバーの折りたたみ切り替え
+	function toggleSidebar() {
+		sidebarCollapsed = !sidebarCollapsed;
+	}
+
+	// サイドバー幅のリサイズハンドリング
+	let isResizing = false;
+	let startX = 0;
+	let startWidth = 0;
+
+	function handleMouseDown(event: MouseEvent) {
+		isResizing = true;
+		startX = event.clientX;
+		startWidth = sidebarWidth;
+		
+		document.addEventListener('mousemove', handleMouseMove);
+		document.addEventListener('mouseup', handleMouseUp);
+		document.body.style.cursor = 'col-resize';
+		document.body.style.userSelect = 'none';
+	}
+
+	function handleMouseMove(event: MouseEvent) {
+		if (!isResizing) return;
+		
+		const deltaX = event.clientX - startX;
+		const newWidth = Math.max(250, Math.min(600, startWidth + deltaX));
+		sidebarWidth = newWidth;
+	}
+
+	function handleMouseUp() {
+		isResizing = false;
+		document.removeEventListener('mousemove', handleMouseMove);
+		document.removeEventListener('mouseup', handleMouseUp);
+		document.body.style.cursor = '';
+		document.body.style.userSelect = '';
+	}
+
+	// 通知コンポーネント（簡易版）
+	$: notificationList = $notifications;
 </script>
 
-<main class="container">
-  <h1>Welcome to Tauri + Svelte</h1>
+<svelte:head>
+	<title>組み込み開発ターミナル</title>
+</svelte:head>
 
-  <div class="row">
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo vite" alt="Vite Logo" />
-    </a>
-    <a href="https://tauri.app" target="_blank">
-      <img src="/tauri.svg" class="logo tauri" alt="Tauri Logo" />
-    </a>
-    <a href="https://kit.svelte.dev" target="_blank">
-      <img src="/svelte.svg" class="logo svelte-kit" alt="SvelteKit Logo" />
-    </a>
-  </div>
-  <p>Click on the Tauri, Vite, and SvelteKit logos to learn more.</p>
+<div class="app">
+	<!-- 初期化中の表示 -->
+	{#if !isInitialized && !initError}
+		<div class="init-screen">
+			<div class="init-content">
+				<div class="spinner"></div>
+				<h2 class="init-title">組み込み開発ターミナル</h2>
+				<p class="init-message">アプリケーションを初期化しています...</p>
+			</div>
+		</div>
+	{:else if initError}
+		<!-- 初期化エラーの表示 -->
+		<div class="error-screen">
+			<div class="error-content">
+				<svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
+					<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+				</svg>
+				<h2 class="error-title">初期化エラー</h2>
+				<p class="error-message">{initError}</p>
+				<button class="retry-button" on:click={() => window.location.reload()}>
+					再試行
+				</button>
+			</div>
+		</div>
+	{:else}
+		<!-- メインアプリケーション -->
+		<div class="main-layout">
+			<!-- サイドバー -->
+			<div 
+				class="sidebar" 
+				class:collapsed={sidebarCollapsed}
+				style="width: {sidebarCollapsed ? '60px' : `${sidebarWidth}px`}"
+			>
+				<!-- サイドバーヘッダー -->
+				<div class="sidebar-header">
+					{#if !sidebarCollapsed}
+						<h1 class="app-title">組み込み開発ターミナル</h1>
+					{/if}
+					<button 
+						class="sidebar-toggle" 
+						on:click={toggleSidebar}
+						title={sidebarCollapsed ? 'サイドバーを展開' : 'サイドバーを折りたたみ'}
+					>
+						<svg class="toggle-icon" viewBox="0 0 24 24" fill="currentColor">
+							{#if sidebarCollapsed}
+								<path d="M3 18h13v-2H3v2zm0-5h10v-2H3v2zm0-7v2h13V6H3z"/>
+							{:else}
+								<path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+							{/if}
+						</svg>
+					</button>
+				</div>
 
-  <form class="row" onsubmit={greet}>
-    <input id="greet-input" placeholder="Enter a name..." bind:value={name} />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{greetMsg}</p>
-</main>
+				<!-- 接続パネル -->
+				{#if !sidebarCollapsed}
+					<div class="sidebar-content">
+						<ConnectionPanel />
+					</div>
+				{/if}
+
+				<!-- リサイズハンドル -->
+				{#if !sidebarCollapsed}
+					<div 
+						class="resize-handle"
+						on:mousedown={handleMouseDown}
+						role="separator"
+						tabindex="0"
+					></div>
+				{/if}
+			</div>
+
+			<!-- メインコンテンツ -->
+			<div class="main-content">
+				<Terminal />
+			</div>
+		</div>
+	{/if}
+
+	<!-- 通知表示 -->
+	{#if notificationList.length > 0}
+		<div class="notifications">
+			{#each notificationList as notification (notification.id)}
+				<div 
+					class="notification notification-{notification.type}"
+					role="alert"
+				>
+					<div class="notification-content">
+						<h4 class="notification-title">{notification.title}</h4>
+						<p class="notification-message">{notification.message}</p>
+					</div>
+					<button 
+						class="notification-close"
+						on:click={() => notifications.remove(notification.id)}
+						title="通知を閉じる"
+					>
+						<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+							<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+						</svg>
+					</button>
+				</div>
+			{/each}
+		</div>
+	{/if}
+</div>
 
 <style>
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
+	:global(html, body) {
+		@apply h-full m-0 p-0 font-sans;
+		background-color: theme('colors.gray.100');
+	}
 
-.logo.svelte-kit:hover {
-  filter: drop-shadow(0 0 2em #ff3e00);
-}
+	:global(*) {
+		box-sizing: border-box;
+	}
 
-:root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
-  font-weight: 400;
+	.app {
+		@apply h-screen overflow-hidden bg-gray-100 dark:bg-terminal-darker;
+	}
 
-  color: #0f0f0f;
-  background-color: #f6f6f6;
+	.init-screen,
+	.error-screen {
+		@apply flex items-center justify-center h-full;
+	}
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
+	.init-content,
+	.error-content {
+		@apply text-center space-y-4;
+	}
 
-.container {
-  margin: 0;
-  padding-top: 10vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-}
+	.spinner {
+		@apply w-12 h-12 mx-auto border-4 border-gray-200 dark:border-terminal-gray
+		       border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin;
+	}
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
+	.init-title,
+	.error-title {
+		@apply text-2xl font-bold text-gray-900 dark:text-terminal-white;
+	}
 
-.logo.tauri:hover {
-  filter: drop-shadow(0 0 2em #24c8db);
-}
+	.init-message,
+	.error-message {
+		@apply text-gray-600 dark:text-terminal-light;
+	}
 
-.row {
-  display: flex;
-  justify-content: center;
-}
+	.error-icon {
+		@apply w-16 h-16 mx-auto text-red-500 dark:text-red-400;
+	}
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
+	.retry-button {
+		@apply px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white
+		       rounded-lg font-medium transition-colors
+		       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+	}
 
-a:hover {
-  color: #535bf2;
-}
+	.main-layout {
+		@apply flex h-full;
+	}
 
-h1 {
-  text-align: center;
-}
+	.sidebar {
+		@apply flex-shrink-0 bg-white dark:bg-terminal-dark
+		       border-r border-gray-200 dark:border-terminal-gray
+		       transition-all duration-300 ease-in-out
+		       relative;
+	}
 
-input,
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  color: #0f0f0f;
-  background-color: #ffffff;
-  transition: border-color 0.25s;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
-}
+	.sidebar.collapsed {
+		@apply overflow-hidden;
+	}
 
-button {
-  cursor: pointer;
-}
+	.sidebar-header {
+		@apply flex items-center justify-between p-4
+		       border-b border-gray-200 dark:border-terminal-gray
+		       bg-gray-50 dark:bg-terminal-darker;
+	}
 
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
+	.app-title {
+		@apply text-lg font-bold text-gray-900 dark:text-terminal-white truncate;
+	}
 
-input,
-button {
-  outline: none;
-}
+	.sidebar-toggle {
+		@apply p-2 text-gray-600 dark:text-terminal-light
+		       hover:bg-gray-200 dark:hover:bg-terminal-gray/20
+		       rounded-md transition-colors
+		       focus:outline-none focus:ring-2 focus:ring-blue-500;
+	}
 
-#greet-input {
-  margin-right: 5px;
-}
+	.toggle-icon {
+		@apply w-5 h-5;
+	}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color: #f6f6f6;
-    background-color: #2f2f2f;
-  }
+	.sidebar-content {
+		@apply flex-1 overflow-y-auto p-4;
+	}
 
-  a:hover {
-    color: #24c8db;
-  }
+	.resize-handle {
+		@apply absolute right-0 top-0 w-1 h-full cursor-col-resize
+		       hover:bg-blue-500 dark:hover:bg-blue-400
+		       transition-colors z-10;
+	}
 
-  input,
-  button {
-    color: #ffffff;
-    background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
-  }
-}
+	.resize-handle:hover {
+		@apply bg-blue-200 dark:bg-blue-800/50;
+	}
 
+	.main-content {
+		@apply flex-1 flex flex-col overflow-hidden;
+	}
+
+	.notifications {
+		@apply fixed top-4 right-4 space-y-2 z-50;
+	}
+
+	.notification {
+		@apply flex items-start p-4 rounded-lg shadow-lg border-l-4
+		       max-w-md backdrop-blur-sm;
+	}
+
+	.notification-info {
+		@apply bg-blue-50/90 dark:bg-blue-900/90 border-l-blue-500 dark:border-l-blue-400;
+	}
+
+	.notification-success {
+		@apply bg-green-50/90 dark:bg-green-900/90 border-l-green-500 dark:border-l-green-400;
+	}
+
+	.notification-warning {
+		@apply bg-yellow-50/90 dark:bg-yellow-900/90 border-l-yellow-500 dark:border-l-yellow-400;
+	}
+
+	.notification-error {
+		@apply bg-red-50/90 dark:bg-red-900/90 border-l-red-500 dark:border-l-red-400;
+	}
+
+	.notification-content {
+		@apply flex-1 space-y-1;
+	}
+
+	.notification-title {
+		@apply text-sm font-semibold text-gray-900 dark:text-terminal-white;
+	}
+
+	.notification-message {
+		@apply text-sm text-gray-700 dark:text-terminal-light;
+	}
+
+	.notification-close {
+		@apply ml-4 p-1 text-gray-400 dark:text-terminal-light/50
+		       hover:text-gray-600 dark:hover:text-terminal-light
+		       transition-colors rounded
+		       focus:outline-none focus:ring-2 focus:ring-gray-500;
+	}
+
+	/* ダークモード対応 */
+	@media (prefers-color-scheme: dark) {
+		.app {
+			@apply bg-terminal-darker;
+		}
+		
+		.init-title,
+		.error-title {
+			@apply text-terminal-white;
+		}
+		
+		.init-message,
+		.error-message {
+			@apply text-terminal-light;
+		}
+		
+		.spinner {
+			@apply border-terminal-gray border-t-blue-400;
+		}
+		
+		.error-icon {
+			@apply text-red-400;
+		}
+		
+		.sidebar {
+			@apply bg-terminal-dark border-terminal-gray;
+		}
+		
+		.sidebar-header {
+			@apply border-terminal-gray bg-terminal-darker;
+		}
+		
+		.app-title {
+			@apply text-terminal-white;
+		}
+		
+		.sidebar-toggle {
+			@apply text-terminal-light hover:bg-terminal-gray/20;
+		}
+		
+		.resize-handle:hover {
+			@apply bg-blue-800/50;
+		}
+		
+		.notification-title {
+			@apply text-terminal-white;
+		}
+		
+		.notification-message {
+			@apply text-terminal-light;
+		}
+		
+		.notification-close {
+			@apply text-terminal-light/50 hover:text-terminal-light;
+		}
+	}
+
+	/* スクロールバーのスタイリング */
+	.sidebar-content {
+		scrollbar-width: thin;
+		scrollbar-color: theme('colors.gray.400') theme('colors.gray.200');
+	}
+
+	.sidebar-content::-webkit-scrollbar {
+		@apply w-2;
+	}
+
+	.sidebar-content::-webkit-scrollbar-track {
+		@apply bg-gray-200 dark:bg-terminal-gray;
+	}
+
+	.sidebar-content::-webkit-scrollbar-thumb {
+		@apply bg-gray-400 dark:bg-terminal-light/30 rounded;
+	}
+
+	.sidebar-content::-webkit-scrollbar-thumb:hover {
+		@apply bg-gray-500 dark:bg-terminal-light/50;
+	}
 </style>
