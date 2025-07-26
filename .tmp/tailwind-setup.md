@@ -1,19 +1,95 @@
-# TailwindCSS セットアップガイド
+# Tailwind CSS v4 セットアップガイド
 
-## 1. 必要なパッケージのインストール
+## 1. 概要
 
-```bash
-yarn add -D tailwindcss postcss autoprefixer @tailwindcss/forms @tailwindcss/typography
+このプロジェクトではTailwind CSS v4を使用しています。v4では設定方法が大幅に簡素化され、より直感的な設定が可能になりました。
+
+## 2. 現在の設定状況
+
+### 2.1 インストール済みパッケージ
+```json
+{
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.11",
+    "tailwindcss": "^4.1.11"
+  }
+}
 ```
 
-## 2. 設定ファイル
+### 2.2 Vite設定 (vite.config.ts)
+```typescript
+import { sveltekit } from '@sveltejs/kit/vite';
+import tailwindcss from '@tailwindcss/vite';
+import { defineConfig } from 'vite';
 
-### 2.1 tailwind.config.js
+export default defineConfig({
+  plugins: [
+    sveltekit(),
+    tailwindcss() // Tailwind CSS v4 Viteプラグイン
+  ]
+});
+```
+
+### 2.3 CSS設定 (src/app.css)
+```css
+@import "tailwindcss";
+
+/* カスタムスタイル */
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+```
+
+## 3. Tailwind CSS v4の主な変更点
+
+### 3.1 設定ファイルの簡素化
+- `tailwind.config.js`は不要（オプション）
+- `postcss.config.js`は不要
+- 設定は`@config`ディレクティブまたはCSSファイル内で行う
+
+### 3.2 @import構文の変更
+```css
+/* v3 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* v4 */
+@import "tailwindcss";
+```
+
+### 3.3 カスタムテーマの定義方法
+
+#### CSSファイル内での設定
+```css
+@import "tailwindcss";
+
+@theme {
+  --color-terminal-bg: #1a1b26;
+  --color-terminal-text: #a9b1d6;
+  --color-terminal-input: #24283b;
+  --color-terminal-border: #414868;
+  --color-terminal-success: #9ece6a;
+  --color-terminal-error: #f7768e;
+  --color-terminal-warning: #e0af68;
+  --color-terminal-info: #7aa2f7;
+  
+  --color-connection-connected: #9ece6a;
+  --color-connection-connecting: #e0af68;
+  --color-connection-disconnected: #565f89;
+  --color-connection-error: #f7768e;
+}
+```
+
+#### 設定ファイルでの設定（オプション）
 ```javascript
-/** @type {import('tailwindcss').Config} */
+// tailwind.config.js（必要に応じて）
 export default {
-  content: ['./src/**/*.{html,js,svelte,ts}'],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -33,47 +109,52 @@ export default {
           disconnected: '#565f89',
           error: '#f7768e'
         }
-      },
-      fontFamily: {
-        mono: ['Fira Code', 'Consolas', 'Monaco', 'monospace']
       }
     }
-  },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography')
-  ]
-}
-```
-
-### 2.2 postcss.config.js
-```javascript
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {}
   }
 }
 ```
 
-### 2.3 src/app.css
+## 4. プロジェクト推奨設定
+
+### 4.1 完全なapp.css
 ```css
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
 
-@layer base {
-  html {
-    font-family: system-ui, sans-serif;
-  }
+/* カスタムテーマ定義 */
+@theme {
+  /* ターミナルカラー */
+  --color-terminal-bg: #1a1b26;
+  --color-terminal-text: #a9b1d6;
+  --color-terminal-input: #24283b;
+  --color-terminal-border: #414868;
+  --color-terminal-success: #9ece6a;
+  --color-terminal-error: #f7768e;
+  --color-terminal-warning: #e0af68;
+  --color-terminal-info: #7aa2f7;
   
-  code {
-    font-family: 'Fira Code', Consolas, Monaco, monospace;
-  }
+  /* 接続状態カラー */
+  --color-connection-connected: #9ece6a;
+  --color-connection-connecting: #e0af68;
+  --color-connection-disconnected: #565f89;
+  --color-connection-error: #f7768e;
+  
+  /* フォント設定 */
+  --font-mono: 'Fira Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Fira Mono', 'Roboto Mono', monospace;
 }
 
+/* ベーススタイル */
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* カスタムコンポーネント */
 @layer components {
-  /* ターミナル関連コンポーネント */
   .terminal-container {
     @apply bg-terminal-bg border border-terminal-border rounded-lg overflow-hidden h-full flex flex-col;
   }
@@ -84,15 +165,6 @@ export default {
   
   .terminal-input {
     @apply bg-terminal-input border-t border-terminal-border p-3 flex items-center gap-2;
-  }
-  
-  .terminal-input input {
-    @apply bg-transparent text-terminal-text font-mono text-sm flex-1 border-0 focus:ring-0 focus:outline-none placeholder-terminal-text/50;
-  }
-  
-  /* 接続パネル関連コンポーネント */
-  .connection-panel {
-    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4;
   }
   
   .connection-status {
@@ -114,55 +186,10 @@ export default {
   .connection-status.error {
     @apply bg-connection-error/10 text-connection-error;
   }
-  
-  /* フォーム関連コンポーネント */
-  .form-input {
-    @apply block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm;
-  }
-  
-  .form-select {
-    @apply block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm;
-  }
-  
-  .form-label {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
-  }
-  
-  /* ボタン関連コンポーネント */
-  .btn {
-    @apply inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors;
-  }
-  
-  .btn-primary {
-    @apply btn text-white bg-blue-600 hover:bg-blue-700 focus:ring-blue-500;
-  }
-  
-  .btn-secondary {
-    @apply btn text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-blue-500;
-  }
-  
-  .btn-danger {
-    @apply btn text-white bg-red-600 hover:bg-red-700 focus:ring-red-500;
-  }
-  
-  .btn-success {
-    @apply btn text-white bg-green-600 hover:bg-green-700 focus:ring-green-500;
-  }
-  
-  /* カード関連コンポーネント */
-  .card {
-    @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm;
-  }
-  
-  .card-header {
-    @apply px-4 py-3 border-b border-gray-200 dark:border-gray-700;
-  }
-  
-  .card-body {
-    @apply p-4;
-  }
-  
-  /* ユーティリティクラス */
+}
+
+/* ユーティリティ */
+@layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgb(156 163 175) transparent;
@@ -180,170 +207,114 @@ export default {
     background-color: rgb(156 163 175);
     border-radius: 3px;
   }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(107 114 128);
-  }
-}
-
-@layer utilities {
-  .text-shadow {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  }
-  
-  .text-shadow-md {
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  }
-  
-  .backdrop-blur-xs {
-    backdrop-filter: blur(2px);
-  }
 }
 ```
 
-## 3. ダークモード設定
+## 5. 使用例
 
-### 3.1 ダークモード切り替えストア
-```typescript
-// src/lib/stores/theme.ts
-import { writable } from 'svelte/store';
-import { browser } from '$app/environment';
-
-type Theme = 'light' | 'dark' | 'system';
-
-function createThemeStore() {
-  const { subscribe, set, update } = writable<Theme>('system');
-
-  return {
-    subscribe,
-    set: (theme: Theme) => {
-      if (browser) {
-        localStorage.setItem('theme', theme);
-        applyTheme(theme);
-      }
-      set(theme);
-    },
-    init: () => {
-      if (browser) {
-        const stored = localStorage.getItem('theme') as Theme;
-        const theme = stored || 'system';
-        applyTheme(theme);
-        set(theme);
-      }
-    }
-  };
-}
-
-function applyTheme(theme: Theme) {
-  const root = document.documentElement;
-  const isDark = theme === 'dark' || 
-    (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  
-  if (isDark) {
-    root.classList.add('dark');
-  } else {
-    root.classList.remove('dark');
-  }
-}
-
-export const theme = createThemeStore();
-```
-
-### 3.2 テーマ切り替えコンポーネント
+### 5.1 基本的なクラス使用
 ```svelte
-<!-- src/lib/components/common/ThemeToggle.svelte -->
-<script lang="ts">
-  import { theme } from '$lib/stores/theme';
-  
-  function toggleTheme() {
-    theme.update(current => {
-      const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
-      const currentIndex = themes.indexOf(current);
-      return themes[(currentIndex + 1) % themes.length];
-    });
-  }
-</script>
-
-<button 
-  on:click={toggleTheme}
-  class="p-2 rounded-md text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-  title="テーマ切り替え"
->
-  {#if $theme === 'light'}
-    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd" />
-    </svg>
-  {:else if $theme === 'dark'}
-    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-    </svg>
-  {:else}
-    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd" />
-    </svg>
-  {/if}
-</button>
-```
-
-## 4. レスポンシブブレークポイント
-
-```css
-/* Tailwind デフォルトブレークポイント */
-sm: 640px   /* タブレット縦向き */
-md: 768px   /* タブレット横向き */
-lg: 1024px  /* ラップトップ */
-xl: 1280px  /* デスクトップ */
-2xl: 1536px /* 大画面デスクトップ */
-```
-
-## 5. アニメーション設定
-
-```javascript
-// tailwind.config.js に追加
-module.exports = {
-  theme: {
-    extend: {
-      animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'bounce-subtle': 'bounce 2s infinite',
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.3s ease-out',
-      },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0', transform: 'translateY(10px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(100%)' },
-          '100%': { transform: 'translateY(0)' },
-        }
-      }
-    }
-  }
-}
-```
-
-## 6. 共通コンポーネントの活用例
-
-```svelte
-<!-- フォーム要素の統一 -->
-<input class="form-input" />
-<select class="form-select">...</select>
-<label class="form-label">...</label>
-
-<!-- ボタンの統一 -->
-<button class="btn-primary">接続</button>
-<button class="btn-danger">切断</button>
-<button class="btn-secondary">設定</button>
-
-<!-- カードレイアウト -->
-<div class="card">
-  <div class="card-header">
-    <h3>接続設定</h3>
+<!-- ターミナルコンポーネント -->
+<div class="terminal-container">
+  <div class="terminal-output scrollbar-thin">
+    <!-- メッセージ表示 -->
   </div>
-  <div class="card-body">
-    <!-- コンテンツ -->
+  <div class="terminal-input">
+    <input 
+      class="bg-transparent text-terminal-text font-mono flex-1 border-0 focus:ring-0" 
+      placeholder="コマンドを入力..."
+    />
   </div>
 </div>
+
+<!-- 接続状態表示 -->
+<span class="connection-status connected">
+  <span class="w-2 h-2 rounded-full bg-current mr-1"></span>
+  接続中
+</span>
 ```
+
+### 5.2 ダークモード対応
+```svelte
+<!-- Tailwind CSS v4では自動的にダークモードに対応 -->
+<div class="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+  <!-- コンテンツ -->
+</div>
+```
+
+## 6. v3からv4への移行時の注意点
+
+### 6.1 削除されたファイル
+- ✅ `postcss.config.js` - 削除済み
+- ✅ 旧`tailwind.config.js` - 削除済み
+
+### 6.2 変更が必要な記述
+```css
+/* 変更前（v3） */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 変更後（v4）- 既に適用済み */
+@import "tailwindcss";
+```
+
+### 6.3 カスタムカラーの参照方法
+```css
+/* v3 */
+.text-terminal-text { color: var(--color-terminal-text); }
+
+/* v4 */
+.text-terminal-text { /* 自動的に適用される */ }
+```
+
+## 7. パフォーマンス最適化
+
+### 7.1 v4の利点
+- より高速なビルド
+- 自動的な最適化
+- ツリーシェイキングの改善
+- 設定ファイルの簡素化
+
+### 7.2 推奨設定
+```typescript
+// vite.config.ts
+export default defineConfig({
+  plugins: [
+    sveltekit(),
+    tailwindcss() // v4プラグインは自動最適化
+  ]
+});
+```
+
+## 8. トラブルシューティング
+
+### 8.1 よくある問題
+
+#### スタイルが適用されない
+```bash
+# キャッシュクリア
+rm -rf .svelte-kit node_modules/.vite
+yarn install
+yarn dev
+```
+
+#### カスタムカラーが認識されない
+```css
+/* @themeディレクティブ内で定義されているか確認 */
+@theme {
+  --color-custom: #ffffff;
+}
+```
+
+### 8.2 デバッグ方法
+```bash
+# Tailwind CSS v4のビルドログを確認
+yarn build --verbose
+```
+
+## 9. 参考リンク
+
+- [Tailwind CSS v4 公式ドキュメント](https://tailwindcss.com/docs/v4-beta)
+- [Viteプラグイン設定](https://tailwindcss.com/docs/guides/vite)
+- [テーマカスタマイゼーション](https://tailwindcss.com/docs/theme)

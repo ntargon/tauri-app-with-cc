@@ -24,68 +24,75 @@
 - **Backend**: ビジネスロジック、設定管理、ファイルI/O
 - **Communication Layer**: シリアル/TCP通信の実装
 
-## 2. ディレクトリ構造
+## 2. ディレクトリ構造 (実装済み)
 
 ```
 src/
 ├── lib/
-│   ├── components/           # UIコンポーネント
-│   │   ├── Terminal/
-│   │   │   ├── Terminal.svelte
-│   │   │   ├── TerminalInput.svelte
-│   │   │   └── TerminalOutput.svelte
-│   │   ├── ConnectionPanel/
-│   │   │   ├── ConnectionPanel.svelte
-│   │   │   ├── SerialConfig.svelte
-│   │   │   └── TcpConfig.svelte
-│   │   ├── Settings/
-│   │   │   ├── SettingsPanel.svelte
-│   │   │   ├── ProfileManager.svelte
-│   │   │   └── AppSettings.svelte
-│   │   └── common/
-│   │       ├── Button.svelte
-│   │       ├── Input.svelte
-│   │       └── Select.svelte
-│   ├── stores/               # 状態管理
-│   │   ├── connection.ts
-│   │   ├── terminal.ts
-│   │   ├── settings.ts
-│   │   └── logs.ts
-│   ├── types/                # 型定義
-│   │   ├── connection.ts
-│   │   ├── terminal.ts
-│   │   └── settings.ts
-│   └── utils/                # ユーティリティ
+│   ├── components/           # UIコンポーネント (実装済み)
+│   │   ├── layout/          # レイアウトコンポーネント
+│   │   │   ├── AppShell.svelte     # メインアプリケーションシェル
+│   │   │   └── Sidebar.svelte      # サイドバーレイアウト
+│   │   ├── terminal/        # ターミナル関連コンポーネント
+│   │   │   ├── Terminal.svelte     # メインターミナルコンポーネント
+│   │   │   ├── InputArea.svelte    # 入力エリア
+│   │   │   ├── MessageList.svelte  # メッセージリスト
+│   │   │   └── MessageItem.svelte  # 個別メッセージアイテム
+│   │   ├── connection/      # 接続関連コンポーネント
+│   │   │   ├── ConnectionPanel.svelte # 接続パネル統合
+│   │   │   ├── ConnectionForm.svelte  # 接続設定フォーム
+│   │   │   └── ConnectionStatus.svelte # 接続状態表示
+│   │   └── settings/ (予定) # 設定管理コンポーネント
+│   │       ├── SettingsPanel.svelte
+│   │       ├── ProfileManager.svelte
+│   │       └── AppSettings.svelte
+│   ├── stores/               # 状態管理 (実装済み)
+│   │   ├── connection.ts     # 接続状態管理
+│   │   ├── terminal.ts       # ターミナル状態管理
+│   │   ├── settings.ts       # 設定管理
+│   │   └── logs.ts (予定)    # ログ管理
+│   ├── types/                # 型定義 (実装済み)
+│   │   ├── connection.ts     # 接続関連型定義
+│   │   ├── terminal.ts       # ターミナル関連型定義
+│   │   └── settings.ts       # 設定関連型定義
+│   └── utils/ (予定)         # ユーティリティ
 │       ├── formatters.ts
 │       └── validators.ts
 ├── routes/
-│   └── +layout.svelte
-└── app.html
+│   ├── +layout.svelte       # 基本レイアウト
+│   └── +page.svelte         # メインページ (AppShell統合)
+├── app.html                 # HTMLテンプレート
+└── app.css                  # Tailwind CSS v4設定
 
 src-tauri/
 ├── src/
-│   ├── commands/             # Tauriコマンド
-│   │   ├── connection.rs
-│   │   ├── terminal.rs
-│   │   └── settings.rs
-│   ├── communication/        # 通信層
-│   │   ├── mod.rs
-│   │   ├── serial.rs
-│   │   └── tcp.rs
-│   ├── models/               # データ構造
-│   │   ├── connection.rs
-│   │   ├── settings.rs
-│   │   └── terminal.rs
-│   ├── services/             # ビジネスロジック
-│   │   ├── connection_manager.rs
-│   │   ├── settings_manager.rs
-│   │   └── log_manager.rs
-│   ├── utils/                # ユーティリティ
-│   │   ├── encryption.rs
-│   │   └── file_utils.rs
-│   └── lib.rs
-├── Cargo.toml
-└── tauri.conf.json
+│   ├── commands/             # Tauriコマンド (実装済み)
+│   │   ├── mod.rs            # コマンドモジュール
+│   │   ├── connection.rs     # 接続関連コマンド
+│   │   ├── terminal.rs       # ターミナル関連コマンド
+│   │   └── settings.rs       # 設定関連コマンド
+│   ├── communication/        # 通信層 (実装済み)
+│   │   ├── mod.rs            # 通信抽象化レイヤー
+│   │   ├── serial.rs         # シリアル通信実装
+│   │   └── tcp.rs            # TCP通信実装
+│   ├── models/               # データ構造 (実装済み)
+│   │   ├── mod.rs            # モデルモジュール
+│   │   ├── connection.rs     # 接続設定データ構造
+│   │   ├── settings.rs       # アプリ設定データ構造
+│   │   └── terminal.rs       # ターミナルデータ構造
+│   ├── services/             # ビジネスロジック (一部実装済み)
+│   │   ├── mod.rs            # サービスモジュール
+│   │   ├── connection_manager.rs (予定) # 接続管理サービス
+│   │   ├── settings_manager.rs (予定)   # 設定管理サービス
+│   │   └── log_manager.rs (予定)        # ログ管理サービス
+│   ├── utils/                # ユーティリティ (予定)
+│   │   ├── mod.rs            # ユーティリティモジュール
+│   │   ├── encryption.rs (予定) # 暗号化ユーティリティ
+│   │   └── file_utils.rs (予定) # ファイル操作ユーティリティ
+│   ├── lib.rs                # ライブラリルート
+│   └── main.rs               # アプリケーションエントリーポイント
+├── Cargo.toml                # Rust依存関係設定
+└── tauri.conf.json           # Tauri設定
 ```
 
 ## 3. データモデル設計
@@ -251,34 +258,29 @@ impl ConnectionManager {
 
 ## 6. UI/UXコンポーネント設計
 
-### 6.1 TailwindCSSデザインシステム
+### 6.1 Tailwind CSS v4デザインシステム (実装済み)
 
 #### 6.1.1 カラーパレット
-```javascript
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        terminal: {
-          bg: '#1a1b26',
-          text: '#a9b1d6',
-          input: '#24283b',
-          border: '#414868',
-          success: '#9ece6a',
-          error: '#f7768e',
-          warning: '#e0af68',
-          info: '#7aa2f7'
-        },
-        connection: {
-          connected: '#9ece6a',
-          connecting: '#e0af68',
-          disconnected: '#565f89',
-          error: '#f7768e'
-        }
-      }
-    }
-  }
+```css
+/* app.css - Tailwind CSS v4設定 */
+@import "tailwindcss";
+
+@theme {
+  /* ターミナルカラー */
+  --color-terminal-bg: #1a1b26;
+  --color-terminal-text: #a9b1d6;
+  --color-terminal-input: #24283b;
+  --color-terminal-border: #414868;
+  --color-terminal-success: #9ece6a;
+  --color-terminal-error: #f7768e;
+  --color-terminal-warning: #e0af68;
+  --color-terminal-info: #7aa2f7;
+  
+  /* 接続状態カラー */
+  --color-connection-connected: #9ece6a;
+  --color-connection-connecting: #e0af68;
+  --color-connection-disconnected: #565f89;
+  --color-connection-error: #f7768e;
 }
 ```
 
@@ -330,168 +332,132 @@ module.exports = {
 
 ### 6.2 主要コンポーネント設計
 
-#### 6.2.1 ターミナルコンポーネント
+#### 6.2.1 ターミナルコンポーネント (実装済み)
 ```svelte
 <!-- Terminal.svelte -->
 <script lang="ts">
-  import TerminalOutput from './TerminalOutput.svelte';
-  import TerminalInput from './TerminalInput.svelte';
+  import MessageList from './MessageList.svelte';
+  import InputArea from './InputArea.svelte';
   import { terminal } from '$lib/stores/terminal';
   import { connection } from '$lib/stores/connection';
 </script>
 
-<div class="terminal-container">
-  <TerminalOutput messages={$terminal.messages} config={$terminal.config} />
-  <TerminalInput 
-    bind:value={$terminal.currentInput}
-    history={$terminal.commandHistory}
-    disabled={$connection.connectionStatus !== 'connected'}
-    on:send={handleSend}
-  />
+<div class="flex flex-col h-full bg-gray-900 rounded-lg overflow-hidden">
+  <!-- メッセージリスト表示エリア -->
+  <MessageList />
+  
+  <!-- 入力エリア -->
+  <InputArea />
 </div>
 ```
 
-#### 6.2.2 接続パネル
+#### 6.2.2 AppShellコンポーネント (実装済み)
+```svelte
+<!-- AppShell.svelte -->
+<script lang="ts">
+  import Sidebar from './Sidebar.svelte';
+  import Terminal from '../terminal/Terminal.svelte';
+</script>
+
+<div class="flex h-screen bg-gray-100 dark:bg-gray-900">
+  <!-- サイドバー -->
+  <Sidebar />
+  
+  <!-- メインコンテンツエリア -->
+  <main class="flex-1 p-4">
+    <Terminal />
+  </main>
+</div>
+```
+
+#### 6.2.3 接続パネル (実装済み)
 ```svelte
 <!-- ConnectionPanel.svelte -->
 <script lang="ts">
-  import SerialConfig from './SerialConfig.svelte';
-  import TcpConfig from './TcpConfig.svelte';
-  import { connection } from '$lib/stores/connection';
-  
-  let selectedType: 'serial' | 'tcp' = 'serial';
+  import ConnectionForm from './ConnectionForm.svelte';
+  import ConnectionStatus from './ConnectionStatus.svelte';
 </script>
 
-<div class="connection-panel">
-  <!-- タブ切り替え -->
-  <div class="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 mb-4">
-    <button 
-      class="flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors {selectedType === 'serial' 
-        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
-        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}"
-      on:click={() => selectedType = 'serial'}
-    >
-      シリアル通信
-    </button>
-    <button 
-      class="flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors {selectedType === 'tcp' 
-        ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
-        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}"
-      on:click={() => selectedType = 'tcp'}
-    >
-      TCP通信
-    </button>
-  </div>
+<div class="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+    接続設定
+  </h2>
   
-  <!-- 接続設定 -->
-  {#if selectedType === 'serial'}
-    <SerialConfig />
-  {:else}
-    <TcpConfig />
-  {/if}
+  <!-- 接続状態表示 -->
+  <ConnectionStatus />
   
-  <!-- 接続制御 -->
-  <div class="mt-6 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <span class="connection-status {$connection.connectionStatus}">
-        <span class="w-2 h-2 rounded-full bg-current mr-1"></span>
-        {$connection.connectionStatus === 'connected' ? '接続中' : 
-         $connection.connectionStatus === 'connecting' ? '接続中...' : 
-         $connection.connectionStatus === 'error' ? 'エラー' : '未接続'}
-      </span>
-    </div>
-    
-    <button 
-      class="px-4 py-2 text-sm font-medium rounded-md transition-colors {$connection.connectionStatus === 'connected' 
-        ? 'bg-red-600 hover:bg-red-700 text-white' 
-        : 'bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-400'}"
-      on:click={handleConnect} 
-      disabled={$connection.connectionStatus === 'connecting'}
-    >
-      {$connection.connectionStatus === 'connected' ? '切断' : '接続'}
-    </button>
-  </div>
+  <!-- 接続設定フォーム -->
+  <ConnectionForm />
 </div>
 ```
 
-#### 6.2.3 シリアル設定コンポーネント
+#### 6.2.4 Sidebarコンポーネント (実装済み)
 ```svelte
-<!-- SerialConfig.svelte -->
+<!-- Sidebar.svelte -->
 <script lang="ts">
-  import Select from '../common/Select.svelte';
-  import { connection } from '$lib/stores/connection';
-  
-  const baudRates = [9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600];
-  const dataBits = [5, 6, 7, 8];
-  const stopBits = [1, 1.5, 2];
-  const parities = ['None', 'Even', 'Odd', 'Mark', 'Space'];
+  import ConnectionPanel from '../connection/ConnectionPanel.svelte';
 </script>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-      COMポート
-    </label>
-    <Select 
-      options={$connection.availablePorts.map(port => ({ value: port, label: port }))}
-      bind:value={$connection.currentConnection?.serial_config?.port}
-      placeholder="ポートを選択"
-      class="w-full"
-    />
+<aside class="w-80 bg-gray-50 dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4">
+  <div class="mb-6">
+    <h1 class="text-xl font-bold text-gray-900 dark:text-white">
+      組み込み開発ターミナル
+    </h1>
   </div>
   
-  <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-      ボーレート
-    </label>
-    <Select 
-      options={baudRates.map(rate => ({ value: rate, label: rate.toString() }))}
-      bind:value={$connection.currentConnection?.serial_config?.baud_rate}
-      class="w-full"
-    />
-  </div>
-  
-  <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-      データビット
-    </label>
-    <Select 
-      options={dataBits.map(bits => ({ value: bits, label: bits.toString() }))}
-      bind:value={$connection.currentConnection?.serial_config?.data_bits}
-      class="w-full"
-    />
-  </div>
-  
-  <div>
-    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-      ストップビット
-    </label>
-    <Select 
-      options={stopBits.map(bits => ({ value: bits, label: bits.toString() }))}
-      bind:value={$connection.currentConnection?.serial_config?.stop_bits}
-      class="w-full"
-    />
-  </div>
-</div>
+  <ConnectionPanel />
+</aside>
 ```
 
-### 6.3 レスポンシブデザイン
-```svelte
-<!-- メインレイアウト -->
-<div class="h-screen bg-gray-50 dark:bg-gray-900 flex flex-col lg:flex-row">
-  <!-- サイドバー（設定パネル） -->
-  <div class="w-full lg:w-80 xl:w-96 border-b lg:border-b-0 lg:border-r border-gray-200 dark:border-gray-700 p-4">
-    <ConnectionPanel />
-  </div>
-  
-  <!-- メインエリア（ターミナル） -->
-  <div class="flex-1 flex flex-col">
-    <Terminal />
-  </div>
-</div>
+## 7. 実装状況サマリー (2024年12月現在)
+
+### 7.1 完了した機能
+- ✅ **基盤アーキテクチャ**: Tauri v2 + SvelteKit + TypeScript + Tailwind CSS v4
+- ✅ **データモデル**: Rust側の完全な型定義とTS側の型定義
+- ✅ **通信機能**: シリアル・TCP通信の完全実装
+- ✅ **UIコンポーネント**: 11のコンポーネント (layout, terminal, connection)
+- ✅ **状態管理**: Svelte stores による反応的状態管理
+- ✅ **レスポンシブデザイン**: Tailwind CSS v4による現代的UI
+
+### 7.2 技術スタック詳細
+```typescript
+// Frontend
+- SvelteKit: ^2.9.0
+- Svelte: ^5.0.0  
+- TypeScript: ~5.6.2
+- Tailwind CSS: ^4.1.11
+- Vite: ^6.0.3
+
+// Backend  
+- Tauri: ^2
+- Rust 2021 Edition
+- tokio: 1.0 (async runtime)
+- serialport: 4.2
+- serde: 1.0 (JSON serialization)
 ```
 
-## 7. データ永続化設計
+### 7.3 アーキテクチャの特徴
+- **型安全性**: RustとTypeScriptでの完全な型定義
+- **パフォーマンス**: Rustバックエンドによる高速処理
+- **モダンUI**: Tailwind CSS v4による最新のデザインシステム
+- **リアクティブ**: Svelte 5による効率的な状態管理
+
+## 8. 次期開発計画
+
+### 8.1 Phase 4: 設定管理機能 (優先度: 高)
+- **ターゲット**: 2024年12月下旬〜2025年1月
+- **機能**: 接続プロファイル保存、アプリ設定永続化
+- **技術**: Tauri ファイルシステムAPI、JSON設定ファイル
+
+### 8.2 Phase 5: ログ・履歴機能 (優先度: 中)
+- **機能**: 通信ログ保存、コマンド履歴、エクスポート機能
+- **技術**: ファイルベースログ、日付別管理
+
+### 8.3 Phase 6: エラーハンドリング強化 (優先度: 中)
+- **機能**: 包括的エラー処理、自動再接続、ユーザー通知
+- **技術**: カスタムエラー型、トースト通知
+
+## 9. データ永続化設計 (予定)
 
 ### 7.1 設定ファイル構造
 ```
