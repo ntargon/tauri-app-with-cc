@@ -100,6 +100,7 @@ impl TerminalMessage {
 }
 
 impl LineEnding {
+    #[allow(dead_code)]
     pub fn to_bytes(&self) -> &'static [u8] {
         match self {
             LineEnding::Cr => b"\r",
@@ -108,6 +109,7 @@ impl LineEnding {
         }
     }
 
+    #[allow(dead_code)]
     pub fn to_string(&self) -> &'static str {
         match self {
             LineEnding::Cr => "\r",
@@ -151,6 +153,7 @@ impl CommandHistory {
         self.current_index = None;
     }
 
+    #[allow(dead_code)]
     pub fn get_previous(&mut self) -> Option<&String> {
         if self.commands.is_empty() {
             return None;
@@ -172,6 +175,7 @@ impl CommandHistory {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_next(&mut self) -> Option<&String> {
         match self.current_index {
             None => None,

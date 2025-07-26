@@ -123,6 +123,7 @@ impl Default for TcpConfig {
 }
 
 impl ConnectionConfig {
+    #[allow(dead_code)]
     pub fn new_serial(name: String, serial_config: SerialConfig) -> Self {
         let now = Utc::now();
         Self {
@@ -136,6 +137,7 @@ impl ConnectionConfig {
         }
     }
 
+    #[allow(dead_code)]
     pub fn new_tcp(name: String, tcp_config: TcpConfig) -> Self {
         let now = Utc::now();
         Self {

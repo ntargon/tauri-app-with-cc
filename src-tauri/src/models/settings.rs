@@ -214,6 +214,7 @@ impl ProfileManager {
             .and_then(|id| self.get_profile(id))
     }
 
+    #[allow(dead_code)]
     pub fn get_profiles_by_group(&self, group_id: &str) -> Vec<&ConnectionConfig> {
         if let Some(group) = self.groups.get(group_id) {
             group
@@ -226,10 +227,12 @@ impl ProfileManager {
         }
     }
 
+    #[allow(dead_code)]
     pub fn add_group(&mut self, group: ProfileGroup) {
         self.groups.insert(group.id.clone(), group);
     }
 
+    #[allow(dead_code)]
     pub fn remove_group(&mut self, group_id: &str) -> bool {
         self.groups.remove(group_id).is_some()
     }

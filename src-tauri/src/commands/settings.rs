@@ -274,7 +274,7 @@ pub async fn validate_profile(
                 if tcp_config.host.trim().is_empty() {
                     errors.push("ホストアドレスを入力してください".to_string());
                 }
-                if tcp_config.port == 0 || tcp_config.port > 65535 {
+                if tcp_config.port == 0 {
                     errors.push("有効なポート番号（1-65535）を入力してください".to_string());
                 }
             } else {

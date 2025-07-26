@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::communication::{ConnectionManager, ConnectionError, ConnectionResult};
     use crate::models::{ConnectionConfig, ConnectionType, TcpConfig};
     use chrono::Utc;
@@ -40,7 +39,7 @@ mod tests {
         // モックハンドラーは実際のTCP/Serial接続をモックできないため、
         // このテストでは基本的な構造のテストに留める
         // 実際の接続テストは個別のハンドラーレベルで行う
-        let result = manager.connect(config.clone(), tx).await;
+        let _result = manager.connect(config.clone(), tx).await;
         
         // 設定が不正でない限り、接続試行は行われる
         // ただし、実際のサーバーが存在しないため失敗する可能性が高い
