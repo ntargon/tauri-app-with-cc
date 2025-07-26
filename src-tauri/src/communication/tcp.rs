@@ -1,6 +1,7 @@
 use super::{ConnectionError, ConnectionHandler, ConnectionResult};
 use crate::models::{ConnectionConfig, TcpConfig, TerminalMessage};
 use async_trait::async_trait;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
@@ -11,7 +12,7 @@ use tracing::{debug, error, info, warn};
 pub struct TcpHandler {
     config: TcpConfig,
     stream: Arc<Mutex<Option<TcpStream>>>,
-    is_connected: Arc<Mutex<bool>>,
+    is_connected: Arc<AtomicBool>,
 }
 
 impl TcpHandler {
@@ -19,7 +20,7 @@ impl TcpHandler {
         Self {
             config,
             stream: Arc::new(Mutex::new(None)),
-            is_connected: Arc::new(Mutex::new(false)),
+            is_connected: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -42,11 +43,29 @@ impl TcpHandler {
                 Ok(stream)
             }
             Ok(Err(e)) => {
-                error!("Failed to connect to {}: {}", address, e);
-                Err(ConnectionError::IoError(e))
+                let detailed_error = match e.kind() {
+                    std::io::ErrorKind::ConnectionRefused => {
+                        format!("接続が拒否されました（{}）。サーバーが起動していない可能性があります", address)
+                    }
+                    std::io::ErrorKind::TimedOut => {
+                        format!("接続がタイムアウトしました（{}）。ネットワークまたはファイアウォールの問題の可能性があります", address)
+                    }
+                    std::io::ErrorKind::NotFound => {
+                        format!("ホストが見つかりません（{}）。アドレスを確認してください", address)
+                    }
+                    std::io::ErrorKind::PermissionDenied => {
+                        format!("接続が許可されていません（{}）。ポートアクセス権限を確認してください", address)
+                    }
+                    _ => {
+                        format!("TCP接続エラー（{}）: {}", address, e)
+                    }
+                };
+                error!("{}", detailed_error);
+                Err(ConnectionError::IoError(std::io::Error::new(e.kind(), detailed_error)))
             }
             Err(_) => {
-                error!("TCP connection timeout to: {}", address);
+                let timeout_error = format!("TCP接続タイムアウト（{}）: {}ms以内に接続できませんでした", address, self.config.timeout.as_millis());
+                error!("{}", timeout_error);
                 Err(ConnectionError::NetworkTimeout)
             }
         }
@@ -56,17 +75,21 @@ impl TcpHandler {
 #[async_trait]
 impl ConnectionHandler for TcpHandler {
     async fn connect(&mut self, _config: &ConnectionConfig) -> ConnectionResult<()> {
+        info!("開始: TCP接続 - {}:{} (タイムアウト: {}ms, keep-alive: {})", 
+              self.config.host, self.config.port, self.config.timeout.as_millis(), self.config.keep_alive);
         debug!("Attempting to connect to TCP: {}:{}", self.config.host, self.config.port);
 
         // 既存の接続があれば閉じる
         {
             let mut stream_guard = self.stream.lock().await;
             if let Some(mut stream) = stream_guard.take() {
+                debug!("既存のTCP接続を切断中: {}:{}", self.config.host, self.config.port);
                 let _ = stream.shutdown().await;
             }
         }
 
         // 新しい接続を作成
+        debug!("TCP接続試行中: {}:{}", self.config.host, self.config.port);
         let stream = self.create_connection().await?;
         
         // ストリームを保存
@@ -74,14 +97,12 @@ impl ConnectionHandler for TcpHandler {
             let mut stream_guard = self.stream.lock().await;
             *stream_guard = Some(stream);
         }
+        debug!("TCPストリームをセッションに保存しました");
 
         // 接続状態を更新
-        {
-            let mut connected = self.is_connected.lock().await;
-            *connected = true;
-        }
+        self.is_connected.store(true, Ordering::SeqCst);
 
-        info!("Successfully connected to TCP: {}:{}", self.config.host, self.config.port);
+        info!("成功: TCP接続が確立されました - {}:{}", self.config.host, self.config.port);
         Ok(())
     }
 
@@ -98,10 +119,7 @@ impl ConnectionHandler for TcpHandler {
         }
 
         // 接続状態を更新
-        {
-            let mut connected = self.is_connected.lock().await;
-            *connected = false;
-        }
+        self.is_connected.store(false, Ordering::SeqCst);
 
         info!("Disconnected from TCP: {}:{}", self.config.host, self.config.port);
         Ok(())
@@ -145,12 +163,9 @@ impl ConnectionHandler for TcpHandler {
             
             loop {
                 // 接続状態をチェック
-                {
-                    let connected = is_connected_arc.lock().await;
-                    if !*connected {
-                        debug!("TCP receive loop stopped: not connected");
-                        break;
-                    }
+                if !is_connected_arc.load(Ordering::SeqCst) {
+                    debug!("TCP receive loop stopped: not connected");
+                    break;
                 }
 
                 // データを読み取り
@@ -193,10 +208,7 @@ impl ConnectionHandler for TcpHandler {
                         let _ = tx.send(message);
                         
                         // 接続状態を更新
-                        {
-                            let mut connected = is_connected_arc.lock().await;
-                            *connected = false;
-                        }
+                        is_connected_arc.store(false, Ordering::SeqCst);
                         break;
                     }
                     Some(Ok(_)) => {
@@ -219,10 +231,7 @@ impl ConnectionHandler for TcpHandler {
                                 let _ = tx.send(message);
                                 
                                 // 接続状態を更新
-                                {
-                                    let mut connected = is_connected_arc.lock().await;
-                                    *connected = false;
-                                }
+                                is_connected_arc.store(false, Ordering::SeqCst);
                                 break;
                             }
                             _ => {
@@ -252,9 +261,7 @@ impl ConnectionHandler for TcpHandler {
     }
 
     fn is_connected(&self) -> bool {
-        // Note: この関数は同期的なので、Arcの値を直接チェックできない
-        // 実際の実装では、AtomicBoolを使用するか、別の方法を検討する必要がある
-        true // 暫定的な実装
+        self.is_connected.load(Ordering::SeqCst)
     }
 
     fn get_connection_info(&self) -> Option<String> {

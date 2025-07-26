@@ -1,10 +1,12 @@
 use crate::communication::{ConnectionError, ConnectionManager, SerialHandler};
-use crate::models::{ConnectionConfig, TerminalMessage};
+use crate::models::{ConnectionConfig, ConnectionType, SerialConfig, TcpConfig, DataBits, StopBits, Parity, FlowControl, TerminalMessage};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::time::Duration;
 use tauri::{AppHandle, Emitter, State};
 use tokio::sync::{mpsc, Mutex};
 use tracing::{debug, error, info};
+use chrono::Utc;
 
 // アプリケーション状態
 pub struct AppState {
@@ -62,6 +64,79 @@ pub struct SerialPortInfo {
     pub product: Option<String>,
 }
 
+// フロントエンドからの接続設定（TypeScript側との互換性）
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FrontendConnectionConfig {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub connection_type: String, // "serial" or "tcp"
+    #[serde(rename = "serialPort")]
+    pub serial_port: Option<String>,
+    #[serde(rename = "baudRate")]
+    pub baud_rate: Option<u32>,
+    pub host: Option<String>,
+    pub port: Option<u16>,
+}
+
+// 型変換関数
+impl FrontendConnectionConfig {
+    pub fn to_backend_config(self) -> Result<ConnectionConfig, String> {
+        let now = Utc::now();
+        
+        match self.connection_type.as_str() {
+            "serial" => {
+                let serial_port = self.serial_port
+                    .ok_or_else(|| "シリアルポートが指定されていません".to_string())?;
+                let baud_rate = self.baud_rate.unwrap_or(115200);
+                
+                let serial_config = SerialConfig {
+                    port: serial_port,
+                    baud_rate,
+                    data_bits: DataBits::Eight,
+                    stop_bits: StopBits::One,
+                    parity: Parity::None,
+                    flow_control: FlowControl::None,
+                };
+                
+                Ok(ConnectionConfig {
+                    id: self.id,
+                    name: self.name,
+                    connection_type: ConnectionType::Serial,
+                    serial_config: Some(serial_config),
+                    tcp_config: None,
+                    created_at: now,
+                    updated_at: now,
+                })
+            },
+            "tcp" => {
+                let host = self.host
+                    .ok_or_else(|| "ホストが指定されていません".to_string())?;
+                let port = self.port
+                    .ok_or_else(|| "ポートが指定されていません".to_string())?;
+                
+                let tcp_config = TcpConfig {
+                    host,
+                    port,
+                    timeout: Duration::from_secs(5),
+                    keep_alive: true,
+                };
+                
+                Ok(ConnectionConfig {
+                    id: self.id,
+                    name: self.name,
+                    connection_type: ConnectionType::Tcp,
+                    serial_config: None,
+                    tcp_config: Some(tcp_config),
+                    created_at: now,
+                    updated_at: now,
+                })
+            },
+            _ => Err(format!("サポートされていない接続タイプです: {}", self.connection_type)),
+        }
+    }
+}
+
 // Tauri コマンド
 
 #[tauri::command]
@@ -111,11 +186,20 @@ pub async fn get_serial_ports_info() -> Result<ApiResponse<Vec<SerialPortInfo>>,
 
 #[tauri::command]
 pub async fn connect_device(
-    config: ConnectionConfig,
+    config: FrontendConnectionConfig,
     app_handle: AppHandle,
     state: State<'_, AppState>,
 ) -> Result<ApiResponse<String>, String> {
     info!("Attempting to connect with config: {:?}", config.name);
+    
+    // フロントエンドの設定をバックエンド形式に変換
+    let backend_config = match config.to_backend_config() {
+        Ok(config) => config,
+        Err(e) => {
+            error!("Invalid configuration: {}", e);
+            return Ok(ApiResponse::error(e));
+        }
+    };
     
     let mut connection_manager = state.connection_manager.lock().await;
     
@@ -135,12 +219,12 @@ pub async fn connect_device(
     start_message_handling(app_handle.clone(), state.message_receiver.clone()).await;
 
     // 接続実行
-    match connection_manager.connect(config.clone(), message_tx).await {
+    match connection_manager.connect(backend_config.clone(), message_tx).await {
         Ok(_) => {
-            info!("Successfully connected to device: {}", config.name);
+            info!("Successfully connected to device: {}", backend_config.name);
             
             // 接続成功イベントを送信
-            let _ = app_handle.emit("connection-status-changed", ("connected", &config.name));
+            let _ = app_handle.emit("connection-status-changed", ("connected", &backend_config.name));
             
             let info = connection_manager.get_connection_info()
                 .unwrap_or_else(|| "Connected".to_string());
@@ -148,7 +232,7 @@ pub async fn connect_device(
             Ok(ApiResponse::success(info))
         }
         Err(e) => {
-            error!("Failed to connect to device {}: {}", config.name, e);
+            error!("Failed to connect to device {}: {}", backend_config.name, e);
             
             // 接続失敗イベントを送信
             let _ = app_handle.emit("connection-status-changed", ("error", e.to_string()));
