@@ -268,99 +268,203 @@
 
 <style>
 	.serial-config {
-		@apply space-y-6;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
 	}
 
 	.config-section {
-		@apply bg-white dark:bg-terminal-dark border border-gray-200 dark:border-terminal-gray 
-		       rounded-lg p-6 shadow-sm;
+		background-color: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		padding: 1.5rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 	}
 
 	.section-title {
-		@apply text-lg font-semibold text-gray-900 dark:text-terminal-white mb-4 
-		       border-b border-gray-200 dark:border-terminal-gray pb-2;
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: #111827;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid #e5e7eb;
+		padding-bottom: 0.5rem;
 	}
 
 	.form-group {
-		@apply mb-4;
+		margin-bottom: 1rem;
 	}
 
 	.form-label {
-		@apply block text-sm font-medium text-gray-700 dark:text-terminal-light mb-2;
+		display: block;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
+		margin-bottom: 0.5rem;
 	}
 
 	.form-select {
-		@apply w-full px-3 py-2 border border-gray-300 dark:border-terminal-gray 
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded-md shadow-sm transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-		       disabled:bg-gray-50 dark:disabled:bg-terminal-darker/50 disabled:text-gray-500;
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.375rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		transition: all 0.2s;
+	}
+
+	.form-select:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.form-select:disabled {
+		background-color: #f9fafb;
+		color: #9ca3af;
+		cursor: not-allowed;
 	}
 
 	.form-select.error {
-		@apply border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500;
+		border-color: #ef4444;
+	}
+
+	.form-select.error:focus {
+		border-color: #ef4444;
+		box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
 	}
 
 	.form-input {
-		@apply w-full px-3 py-2 border border-gray-300 dark:border-terminal-gray 
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded-md shadow-sm transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-		       disabled:bg-gray-50 dark:disabled:bg-terminal-darker/50 disabled:text-gray-500;
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.375rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		transition: all 0.2s;
+	}
+
+	.form-input:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.form-input:disabled {
+		background-color: #f9fafb;
+		color: #9ca3af;
+		cursor: not-allowed;
 	}
 
 	.port-selection {
-		@apply flex gap-2;
+		display: flex;
+		gap: 0.5rem;
 	}
 
 	.port-selection .form-select {
-		@apply flex-1;
+		flex: 1;
 	}
 
 	.refresh-button {
-		@apply flex items-center justify-center w-10 h-10 
-		       border border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker hover:bg-gray-50 dark:hover:bg-terminal-gray/20
-		       text-gray-600 dark:text-terminal-light
-		       rounded-md transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.5rem;
+		height: 2.5rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #6b7280;
+		border-radius: 0.375rem;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.refresh-button:hover:not(:disabled) {
+		background-color: #f9fafb;
+	}
+
+	.refresh-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.refresh-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.refresh-icon {
-		@apply w-5 h-5 fill-current transition-transform;
+		width: 1.25rem;
+		height: 1.25rem;
+		fill: currentColor;
+		transition: transform 0.2s;
 	}
 
 	.refresh-button.loading .refresh-icon {
-		@apply animate-spin;
+		animation: spin 1s linear infinite;
 	}
 
 	.form-error {
-		@apply mt-1 text-sm text-red-600 dark:text-red-400;
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+		color: #dc2626;
 	}
 
 	/* ダークモード対応 */
 	@media (prefers-color-scheme: dark) {
 		.config-section {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.section-title {
-			@apply text-terminal-white border-terminal-gray;
+			color: #f9fafb;
+			border-color: #4b5563;
 		}
 		
 		.form-label {
-			@apply text-terminal-light;
+			color: #d1d5db;
 		}
 		
 		.form-select,
 		.form-input {
-			@apply bg-terminal-darker border-terminal-gray text-terminal-white;
+			background-color: #1f2937;
+			border-color: #4b5563;
+			color: #f9fafb;
+		}
+
+		.form-select:disabled,
+		.form-input:disabled {
+			background-color: rgba(31, 41, 55, 0.5);
+			color: #9ca3af;
+		}
+
+		.form-select.error {
+			border-color: #f87171;
+		}
+
+		.form-error {
+			color: #f87171;
 		}
 		
 		.refresh-button {
-			@apply bg-terminal-darker border-terminal-gray text-terminal-light
-			       hover:bg-terminal-gray/20;
+			background-color: #1f2937;
+			border-color: #4b5563;
+			color: #d1d5db;
+		}
+
+		.refresh-button:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.2);
+		}
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>

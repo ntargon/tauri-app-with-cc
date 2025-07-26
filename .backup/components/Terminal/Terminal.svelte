@@ -289,182 +289,307 @@
 
 <style>
 	.terminal {
-		@apply flex flex-col h-full bg-gray-50 dark:bg-terminal-darker;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		background-color: #f9fafb;
 	}
 
 	.terminal-header {
-		@apply flex items-center justify-between p-4 
-		       bg-white dark:bg-terminal-dark
-		       border-b border-gray-200 dark:border-terminal-gray
-		       shadow-sm;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem;
+		background-color: white;
+		border-bottom: 1px solid #e5e7eb;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 	}
 
 	.header-left {
-		@apply flex items-center space-x-4;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
 	}
 
 	.terminal-title {
-		@apply text-lg font-semibold text-gray-900 dark:text-terminal-white;
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: #111827;
 	}
 
 	.message-counter {
-		@apply text-sm text-gray-600 dark:text-terminal-light
-		       bg-gray-100 dark:bg-terminal-gray/20
-		       px-3 py-1 rounded-full;
+		font-size: 0.875rem;
+		color: #6b7280;
+		background-color: #f3f4f6;
+		padding: 0.25rem 0.75rem;
+		border-radius: 9999px;
 	}
 
 	.header-right {
-		@apply flex items-center space-x-2;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.header-button {
-		@apply p-2 text-gray-600 dark:text-terminal-light 
-		       hover:bg-gray-100 dark:hover:bg-terminal-gray/20
-		       rounded-md transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		padding: 0.5rem;
+		color: #6b7280;
+		background-color: transparent;
+		border: none;
+		border-radius: 0.375rem;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.header-button:hover:not(:disabled) {
+		background-color: #f3f4f6;
+	}
+
+	.header-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
+	}
+
+	.header-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.header-button.active {
-		@apply bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400;
+		background-color: #dbeafe;
+		color: #2563eb;
 	}
 
 	.settings-dropdown {
-		@apply relative;
+		position: relative;
 	}
 
 	.settings-dropdown:hover .dropdown-content {
-		@apply block;
+		display: block;
 	}
 
 	.dropdown-content {
-		@apply hidden absolute right-0 top-full mt-1 
-		       bg-white dark:bg-terminal-dark
-		       border border-gray-200 dark:border-terminal-gray
-		       rounded-md shadow-lg z-10
-		       min-w-48;
+		display: none;
+		position: absolute;
+		right: 0;
+		top: 100%;
+		margin-top: 0.25rem;
+		background-color: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.375rem;
+		box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+		z-index: 10;
+		min-width: 12rem;
 	}
 
 	.dropdown-item {
-		@apply flex items-center justify-between px-4 py-2 text-sm
-		       text-gray-700 dark:text-terminal-light
-		       hover:bg-gray-50 dark:hover:bg-terminal-gray/20
-		       cursor-pointer;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.5rem 1rem;
+		font-size: 0.875rem;
+		color: #374151;
+		cursor: pointer;
+	}
+
+	.dropdown-item:hover {
+		background-color: #f9fafb;
 	}
 
 	.dropdown-item input[type="checkbox"] {
-		@apply w-4 h-4 text-blue-600 border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker rounded
-		       focus:ring-blue-500;
+		width: 1rem;
+		height: 1rem;
+		color: #2563eb;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		border-radius: 0.25rem;
+	}
+
+	.dropdown-item input[type="checkbox"]:focus {
+		box-shadow: 0 0 0 2px #3b82f6;
 	}
 
 	.number-input {
-		@apply w-16 px-2 py-1 text-xs border border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded focus:outline-none focus:ring-1 focus:ring-blue-500;
+		width: 4rem;
+		padding: 0.125rem 0.5rem;
+		font-size: 0.75rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.25rem;
+	}
+
+	.number-input:focus {
+		outline: none;
+		box-shadow: 0 0 0 1px #3b82f6;
 	}
 
 	.dropdown-divider {
-		@apply h-px bg-gray-200 dark:bg-terminal-gray mx-2;
+		height: 1px;
+		background-color: #e5e7eb;
+		margin: 0 0.5rem;
 	}
 
 	.search-bar {
-		@apply p-3 bg-white dark:bg-terminal-dark
-		       border-b border-gray-200 dark:border-terminal-gray;
+		padding: 0.75rem;
+		background-color: white;
+		border-bottom: 1px solid #e5e7eb;
 	}
 
 	.search-container {
-		@apply relative flex items-center;
+		position: relative;
+		display: flex;
+		align-items: center;
 	}
 
 	.search-icon {
-		@apply absolute left-3 w-4 h-4 text-gray-400 dark:text-terminal-light/50;
+		position: absolute;
+		left: 0.75rem;
+		width: 1rem;
+		height: 1rem;
+		color: #9ca3af;
 	}
 
 	.search-input {
-		@apply w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+		width: 100%;
+		padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.375rem;
+	}
+
+	.search-input:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 	}
 
 	.clear-search {
-		@apply absolute right-3 p-1 text-gray-400 dark:text-terminal-light/50
-		       hover:text-gray-600 dark:hover:text-terminal-light
-		       rounded transition-colors;
+		position: absolute;
+		right: 0.75rem;
+		padding: 0.25rem;
+		color: #9ca3af;
+		background-color: transparent;
+		border: none;
+		border-radius: 0.25rem;
+		transition: color 0.2s;
+		cursor: pointer;
+	}
+
+	.clear-search:hover {
+		color: #6b7280;
 	}
 
 	.terminal-content {
-		@apply flex flex-col flex-1 space-y-4 p-4 overflow-hidden;
+		display: flex;
+		flex-direction: column;
+		flex: 1;
+		gap: 1rem;
+		padding: 1rem;
+		overflow: hidden;
 	}
 
 	.output-area {
-		@apply flex-1 overflow-hidden;
+		flex: 1;
+		overflow: hidden;
 	}
 
 	.input-area {
-		@apply flex-shrink-0;
+		flex-shrink: 0;
 	}
 
 	/* ダークモード対応 */
 	@media (prefers-color-scheme: dark) {
 		.terminal {
-			@apply bg-terminal-darker;
+			background-color: #1f2937;
 		}
 		
 		.terminal-header {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.terminal-title {
-			@apply text-terminal-white;
+			color: #f9fafb;
 		}
 		
 		.message-counter {
-			@apply text-terminal-light bg-terminal-gray/20;
+			color: #d1d5db;
+			background-color: rgba(75, 85, 99, 0.2);
 		}
 		
 		.header-button {
-			@apply text-terminal-light hover:bg-terminal-gray/20;
+			color: #d1d5db;
+		}
+
+		.header-button:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.2);
 		}
 		
 		.header-button.active {
-			@apply bg-blue-900/30 text-blue-400;
+			background-color: rgba(37, 99, 235, 0.3);
+			color: #60a5fa;
 		}
 		
 		.dropdown-content {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.dropdown-item {
-			@apply text-terminal-light hover:bg-terminal-gray/20;
+			color: #d1d5db;
+		}
+
+		.dropdown-item:hover {
+			background-color: rgba(75, 85, 99, 0.2);
 		}
 		
 		.dropdown-item input[type="checkbox"] {
-			@apply border-terminal-gray bg-terminal-darker;
+			border-color: #4b5563;
+			background-color: #1f2937;
 		}
 		
 		.number-input {
-			@apply border-terminal-gray bg-terminal-darker text-terminal-white;
+			border-color: #4b5563;
+			background-color: #1f2937;
+			color: #f9fafb;
 		}
 		
 		.dropdown-divider {
-			@apply bg-terminal-gray;
+			background-color: #4b5563;
 		}
 		
 		.search-bar {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.search-icon {
-			@apply text-terminal-light/50;
+			color: rgba(209, 213, 219, 0.5);
 		}
 		
 		.search-input {
-			@apply border-terminal-gray bg-terminal-darker text-terminal-white;
+			border-color: #4b5563;
+			background-color: #1f2937;
+			color: #f9fafb;
 		}
 		
 		.clear-search {
-			@apply text-terminal-light/50 hover:text-terminal-light;
+			color: rgba(209, 213, 219, 0.5);
 		}
+
+		.clear-search:hover {
+			color: #d1d5db;
+		}
+	}
+
+	/* ユーティリティクラス */
+	.w-4 {
+		width: 1rem;
+	}
+
+	.h-4 {
+		height: 1rem;
 	}
 </style>

@@ -303,163 +303,341 @@
 
 <style>
 	.connection-panel {
-		@apply bg-white dark:bg-terminal-dark border border-gray-200 dark:border-terminal-gray
-		       rounded-lg shadow-sm overflow-hidden;
+		background-color: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		overflow: hidden;
 	}
 
 	.panel-header {
-		@apply flex items-center justify-between p-4 border-b border-gray-200 dark:border-terminal-gray
-		       bg-gray-50 dark:bg-terminal-darker;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 1rem;
+		border-bottom: 1px solid #e5e7eb;
+		background-color: #f9fafb;
 	}
 
 	.panel-title {
-		@apply text-lg font-semibold text-gray-900 dark:text-terminal-white;
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: #111827;
 	}
 
 	.connection-status {
-		@apply flex items-center space-x-2;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.status-indicator {
-		@apply w-3 h-3 rounded-full;
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 50%;
 	}
 
 	.connection-status.connected .status-indicator {
-		@apply bg-green-500 animate-pulse;
+		background-color: #10b981;
+		animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 	}
 
 	.connection-status.disconnected .status-indicator {
-		@apply bg-gray-400 dark:bg-terminal-gray;
+		background-color: #9ca3af;
 	}
 
 	.status-text {
-		@apply text-sm font-medium;
+		font-size: 0.875rem;
+		font-weight: 500;
 	}
 
 	.connection-status.connected .status-text {
-		@apply text-green-700 dark:text-green-400;
+		color: #047857;
 	}
 
 	.connection-status.disconnected .status-text {
-		@apply text-gray-600 dark:text-terminal-light;
+		color: #6b7280;
 	}
 
 	.config-section {
-		@apply p-6 space-y-4;
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
 	}
 
 	.section-title {
-		@apply text-lg font-semibold text-gray-900 dark:text-terminal-white mb-4 
-		       border-b border-gray-200 dark:border-terminal-gray pb-2;
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: #111827;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid #e5e7eb;
+		padding-bottom: 0.5rem;
 	}
 
 	.form-group {
-		@apply space-y-2;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
 	}
 
 	.form-label {
-		@apply block text-sm font-medium text-gray-700 dark:text-terminal-light;
+		display: block;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
 	}
 
 	.form-input,
 	.form-textarea {
-		@apply w-full px-3 py-2 border border-gray-300 dark:border-terminal-gray 
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded-md shadow-sm transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-		       disabled:bg-gray-50 dark:disabled:bg-terminal-darker/50 disabled:text-gray-500;
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.375rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		transition: all 0.2s;
+	}
+
+	.form-input:focus,
+	.form-textarea:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	}
+
+	.form-input:disabled,
+	.form-textarea:disabled {
+		background-color: #f9fafb;
+		color: #9ca3af;
+		cursor: not-allowed;
 	}
 
 	.form-textarea {
-		@apply resize-none;
+		resize: none;
 	}
 
 	.connection-type-selector {
-		@apply flex rounded-md overflow-hidden border border-gray-300 dark:border-terminal-gray;
+		display: flex;
+		border-radius: 0.375rem;
+		overflow: hidden;
+		border: 1px solid #d1d5db;
 	}
 
 	.type-button {
-		@apply flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-terminal-light
-		       bg-white dark:bg-terminal-darker hover:bg-gray-50 dark:hover:bg-terminal-gray/20
-		       border-r border-gray-300 dark:border-terminal-gray last:border-r-0
-		       transition-colors focus:outline-none focus:z-10 focus:ring-2 focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		flex: 1;
+		padding: 0.5rem 1rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
+		background-color: white;
+		border-right: 1px solid #d1d5db;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.type-button:last-child {
+		border-right: none;
+	}
+
+	.type-button:hover:not(:disabled) {
+		background-color: #f9fafb;
+	}
+
+	.type-button:focus {
+		outline: none;
+		z-index: 10;
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	}
+
+	.type-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.type-button.active {
-		@apply bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300
-		       border-blue-300 dark:border-blue-700;
+		background-color: #dbeafe;
+		color: #1d4ed8;
+		border-color: #93c5fd;
 	}
 
 	.action-buttons {
-		@apply flex gap-3 p-6 pt-0;
+		display: flex;
+		gap: 0.75rem;
+		padding: 1.5rem;
+		padding-top: 0;
 	}
 
 	.button {
-		@apply px-4 py-2 rounded-md font-medium transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-offset-2
-		       disabled:opacity-50 disabled:cursor-not-allowed
-		       flex items-center justify-center;
+		padding: 0.5rem 1rem;
+		border-radius: 0.375rem;
+		font-weight: 500;
+		transition: all 0.2s;
+		cursor: pointer;
+		border: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.button:focus {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+	}
+
+	.button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.button-primary {
-		@apply bg-blue-600 hover:bg-blue-700 text-white
-		       focus:ring-blue-500;
+		background-color: #2563eb;
+		color: white;
+	}
+
+	.button-primary:hover:not(:disabled) {
+		background-color: #1d4ed8;
 	}
 
 	.button-secondary {
-		@apply bg-gray-200 hover:bg-gray-300 text-gray-800
-		       dark:bg-terminal-gray dark:hover:bg-terminal-gray/80 dark:text-terminal-white
-		       focus:ring-gray-500;
+		background-color: #e5e7eb;
+		color: #1f2937;
+	}
+
+	.button-secondary:hover:not(:disabled) {
+		background-color: #d1d5db;
 	}
 
 	.button-danger {
-		@apply bg-red-600 hover:bg-red-700 text-white
-		       focus:ring-red-500;
+		background-color: #dc2626;
+		color: white;
+	}
+
+	.button-danger:hover:not(:disabled) {
+		background-color: #b91c1c;
 	}
 
 	/* ダークモード対応 */
 	@media (prefers-color-scheme: dark) {
 		.connection-panel {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.panel-header {
-			@apply border-terminal-gray bg-terminal-darker;
+			border-color: #4b5563;
+			background-color: #1f2937;
 		}
 		
 		.panel-title {
-			@apply text-terminal-white;
+			color: #f9fafb;
 		}
 		
 		.section-title {
-			@apply text-terminal-white border-terminal-gray;
+			color: #f9fafb;
+			border-color: #4b5563;
 		}
 		
 		.form-label {
-			@apply text-terminal-light;
+			color: #d1d5db;
 		}
 		
 		.form-input,
 		.form-textarea {
-			@apply bg-terminal-darker border-terminal-gray text-terminal-white;
+			background-color: #1f2937;
+			border-color: #4b5563;
+			color: #f9fafb;
+		}
+		
+		.form-input:disabled,
+		.form-textarea:disabled {
+			background-color: rgba(31, 41, 55, 0.5);
+			color: #9ca3af;
 		}
 		
 		.connection-type-selector {
-			@apply border-terminal-gray;
+			border-color: #4b5563;
 		}
 		
 		.type-button {
-			@apply bg-terminal-darker text-terminal-light border-terminal-gray
-			       hover:bg-terminal-gray/20;
+			background-color: #1f2937;
+			color: #d1d5db;
+			border-color: #4b5563;
+		}
+		
+		.type-button:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.2);
 		}
 		
 		.type-button.active {
-			@apply bg-blue-900/30 text-blue-300 border-blue-700;
+			background-color: rgba(37, 99, 235, 0.3);
+			color: #93c5fd;
+			border-color: #3b82f6;
 		}
 		
 		.button-secondary {
-			@apply bg-terminal-gray hover:bg-terminal-gray/80 text-terminal-white;
+			background-color: #4b5563;
+			color: #f9fafb;
+		}
+		
+		.button-secondary:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.8);
+		}
+
+		.connection-status.disconnected .status-indicator {
+			background-color: #4b5563;
+		}
+
+		.connection-status.connected .status-text {
+			color: #10b981;
+		}
+
+		.connection-status.disconnected .status-text {
+			color: #d1d5db;
+		}
+	}
+
+	@keyframes pulse {
+		0%, 100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.5;
+		}
+	}
+
+	/* アニメーションとユーティリティクラス */
+	.animate-spin {
+		animation: spin 1s linear infinite;
+	}
+
+	.w-4 {
+		width: 1rem;
+	}
+
+	.h-4 {
+		height: 1rem;
+	}
+
+	.mr-2 {
+		margin-right: 0.5rem;
+	}
+
+	.opacity-25 {
+		opacity: 0.25;
+	}
+
+	.opacity-75 {
+		opacity: 0.75;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>

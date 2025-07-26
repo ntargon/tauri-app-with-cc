@@ -247,187 +247,297 @@
 
 <style>
 	.terminal-output {
-		@apply flex flex-col h-full bg-white dark:bg-terminal-dark 
-		       border border-gray-200 dark:border-terminal-gray rounded-lg overflow-hidden;
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		background-color: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		overflow: hidden;
 	}
 
 	.toolbar {
-		@apply flex items-center justify-between p-3 
-		       bg-gray-50 dark:bg-terminal-darker
-		       border-b border-gray-200 dark:border-terminal-gray;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.75rem;
+		background-color: #f9fafb;
+		border-bottom: 1px solid #e5e7eb;
 	}
 
 	.toolbar-left {
-		@apply flex items-center space-x-4;
+		display: flex;
+		align-items: center;
+		gap: 1rem;
 	}
 
 	.toolbar-right {
-		@apply flex items-center space-x-2;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.message-count,
 	.selection-count {
-		@apply text-sm font-medium text-gray-600 dark:text-terminal-light;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #6b7280;
 	}
 
 	.selection-count {
-		@apply text-blue-600 dark:text-blue-400;
+		color: #2563eb;
 	}
 
 	.toolbar-button {
-		@apply p-2 text-gray-600 dark:text-terminal-light 
-		       hover:bg-gray-200 dark:hover:bg-terminal-gray/20
-		       rounded transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		padding: 0.5rem;
+		color: #6b7280;
+		background-color: transparent;
+		border: none;
+		border-radius: 0.25rem;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.toolbar-button:hover:not(:disabled) {
+		background-color: #e5e7eb;
+	}
+
+	.toolbar-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
+	}
+
+	.toolbar-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.output-container {
-		@apply flex-1 overflow-y-auto p-2 
-		       font-mono text-sm leading-relaxed
-		       bg-terminal-darker dark:bg-terminal-darker;
+		flex: 1;
+		overflow-y: auto;
+		padding: 0.5rem;
+		font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, monospace;
+		font-size: 0.875rem;
+		line-height: 1.625;
+		background-color: #1f2937;
 		scrollbar-width: thin;
-		scrollbar-color: theme('colors.gray.400') theme('colors.gray.200');
+		scrollbar-color: #9ca3af #e5e7eb;
 	}
 
 	.output-container::-webkit-scrollbar {
-		@apply w-2;
+		width: 0.5rem;
 	}
 
 	.output-container::-webkit-scrollbar-track {
-		@apply bg-gray-200 dark:bg-terminal-gray;
+		background-color: #e5e7eb;
 	}
 
 	.output-container::-webkit-scrollbar-thumb {
-		@apply bg-gray-400 dark:bg-terminal-light/30 rounded;
+		background-color: #9ca3af;
+		border-radius: 0.25rem;
 	}
 
 	.output-container::-webkit-scrollbar-thumb:hover {
-		@apply bg-gray-500 dark:bg-terminal-light/50;
+		background-color: #6b7280;
 	}
 
 	.empty-state {
-		@apply flex flex-col items-center justify-center h-full
-		       text-gray-500 dark:text-terminal-light/70 text-center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: 100%;
+		color: #6b7280;
+		text-align: center;
 	}
 
 	.message-line {
-		@apply flex items-start space-x-3 p-2 rounded 
-		       hover:bg-gray-50 dark:hover:bg-terminal-gray/10
-		       cursor-pointer transition-colors
-		       border-l-2 border-transparent;
+		display: flex;
+		align-items: flex-start;
+		gap: 0.75rem;
+		padding: 0.5rem;
+		border-radius: 0.25rem;
+		cursor: pointer;
+		transition: all 0.2s;
+		border-left: 2px solid transparent;
+	}
+
+	.message-line:hover {
+		background-color: #f9fafb;
 	}
 
 	.message-line.selected {
-		@apply bg-blue-50 dark:bg-blue-900/20 border-l-blue-500 dark:border-l-blue-400;
+		background-color: #eff6ff;
+		border-left-color: #3b82f6;
 	}
 
 	.message-line.message-sent {
-		@apply border-l-green-500 dark:border-l-green-400;
+		border-left-color: #10b981;
 	}
 
 	.message-line.message-received {
-		@apply border-l-blue-500 dark:border-l-blue-400;
+		border-left-color: #3b82f6;
 	}
 
 	.message-metadata {
-		@apply flex flex-col items-center space-y-1 flex-shrink-0 w-20;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		flex-shrink: 0;
+		width: 5rem;
 	}
 
 	.timestamp {
-		@apply text-xs text-gray-500 dark:text-terminal-light/70 font-medium;
+		font-size: 0.75rem;
+		color: #6b7280;
+		font-weight: 500;
 	}
 
 	.direction-indicator {
-		@apply text-xs font-bold;
+		font-size: 0.75rem;
+		font-weight: bold;
 	}
 
 	.direction-indicator.sent {
-		@apply text-green-600 dark:text-green-400;
+		color: #059669;
 	}
 
 	.direction-indicator.received {
-		@apply text-blue-600 dark:text-blue-400;
+		color: #2563eb;
 	}
 
 	.message-content {
-		@apply flex-1 whitespace-pre-wrap break-words
-		       text-gray-900 dark:text-terminal-white;
+		flex: 1;
+		white-space: pre-wrap;
+		word-break: break-word;
+		color: #111827;
 	}
 
 	.message-info {
-		@apply flex flex-col items-end space-y-1 flex-shrink-0 text-xs
-		       text-gray-400 dark:text-terminal-light/50;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 0.25rem;
+		flex-shrink: 0;
+		font-size: 0.75rem;
+		color: #9ca3af;
 	}
 
 	.encoding,
 	.byte-count {
-		@apply font-medium;
+		font-weight: 500;
 	}
 
 	/* 制御文字の可視化スタイル */
 	:global(.control-char) {
-		@apply bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300
-		       px-1 rounded text-xs font-bold;
+		background-color: #fef3c7;
+		color: #92400e;
+		padding: 0 0.25rem;
+		border-radius: 0.25rem;
+		font-size: 0.75rem;
+		font-weight: bold;
 	}
 
 	/* ダークモード対応 */
 	@media (prefers-color-scheme: dark) {
 		.terminal-output {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.toolbar {
-			@apply bg-terminal-darker border-terminal-gray;
+			background-color: #1f2937;
+			border-color: #4b5563;
 		}
 		
 		.message-count,
 		.selection-count {
-			@apply text-terminal-light;
+			color: #d1d5db;
 		}
 		
 		.selection-count {
-			@apply text-blue-400;
+			color: #60a5fa;
 		}
 		
 		.toolbar-button {
-			@apply text-terminal-light hover:bg-terminal-gray/20;
+			color: #d1d5db;
+		}
+
+		.toolbar-button:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.2);
 		}
 		
 		.output-container {
-			@apply bg-terminal-darker;
+			background-color: #1f2937;
+			scrollbar-color: rgba(209, 213, 219, 0.3) #4b5563;
+		}
+
+		.output-container::-webkit-scrollbar-track {
+			background-color: #4b5563;
+		}
+
+		.output-container::-webkit-scrollbar-thumb {
+			background-color: rgba(209, 213, 219, 0.3);
+		}
+
+		.output-container::-webkit-scrollbar-thumb:hover {
+			background-color: rgba(209, 213, 219, 0.5);
 		}
 		
 		.empty-state {
-			@apply text-terminal-light/70;
+			color: rgba(209, 213, 219, 0.7);
 		}
 		
-		.message-line {
-			@apply hover:bg-terminal-gray/10;
+		.message-line:hover {
+			background-color: rgba(75, 85, 99, 0.1);
 		}
 		
 		.message-line.selected {
-			@apply bg-blue-900/20 border-l-blue-400;
+			background-color: rgba(37, 99, 235, 0.2);
+			border-left-color: #60a5fa;
+		}
+
+		.message-line.message-sent {
+			border-left-color: #10b981;
+		}
+
+		.message-line.message-received {
+			border-left-color: #60a5fa;
 		}
 		
 		.timestamp {
-			@apply text-terminal-light/70;
+			color: rgba(209, 213, 219, 0.7);
 		}
 		
 		.direction-indicator.sent {
-			@apply text-green-400;
+			color: #10b981;
 		}
 		
 		.direction-indicator.received {
-			@apply text-blue-400;
+			color: #60a5fa;
 		}
 		
 		.message-content {
-			@apply text-terminal-white;
+			color: #f9fafb;
 		}
 		
 		.message-info {
-			@apply text-terminal-light/50;
+			color: rgba(209, 213, 219, 0.5);
 		}
+
+		:global(.control-char) {
+			background-color: rgba(180, 83, 9, 0.3);
+			color: #fbbf24;
+		}
+	}
+
+	/* その他のクラス定義 */
+	.text-sm {
+		font-size: 0.875rem;
+	}
+
+	.text-gray-500 {
+		color: #6b7280;
 	}
 </style>

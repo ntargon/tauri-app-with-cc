@@ -238,131 +238,258 @@
 
 <style>
 	.tcp-config {
-		@apply space-y-6;
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
 	}
 
 	.config-section {
-		@apply bg-white dark:bg-terminal-dark border border-gray-200 dark:border-terminal-gray 
-		       rounded-lg p-6 shadow-sm;
+		background-color: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		padding: 1.5rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 	}
 
 	.section-title {
-		@apply text-lg font-semibold text-gray-900 dark:text-terminal-white mb-4 
-		       border-b border-gray-200 dark:border-terminal-gray pb-2;
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: #111827;
+		margin-bottom: 1rem;
+		border-bottom: 1px solid #e5e7eb;
+		padding-bottom: 0.5rem;
 	}
 
 	.form-group {
-		@apply mb-4;
+		margin-bottom: 1rem;
 	}
 
 	.form-group.keep-alive-settings,
 	.form-group.reconnect-settings {
-		@apply ml-6 border-l-2 border-blue-200 dark:border-blue-800 pl-4;
+		margin-left: 1.5rem;
+		border-left: 2px solid #bfdbfe;
+		padding-left: 1rem;
 	}
 
 	.form-label {
-		@apply block text-sm font-medium text-gray-700 dark:text-terminal-light mb-2;
+		display: block;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
+		margin-bottom: 0.5rem;
 	}
 
 	.form-input {
-		@apply w-full px-3 py-2 border border-gray-300 dark:border-terminal-gray 
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded-md shadow-sm transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-		       disabled:bg-gray-50 dark:disabled:bg-terminal-darker/50 disabled:text-gray-500;
+		width: 100%;
+		padding: 0.5rem 0.75rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.375rem;
+		box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+		transition: all 0.2s;
+	}
+
+	.form-input:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.form-input:disabled {
+		background-color: #f9fafb;
+		color: #9ca3af;
+		cursor: not-allowed;
 	}
 
 	.form-input.error {
-		@apply border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500;
+		border-color: #ef4444;
+	}
+
+	.form-input.error:focus {
+		border-color: #ef4444;
+		box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
 	}
 
 	.port-input-group {
-		@apply flex gap-2;
+		display: flex;
+		gap: 0.5rem;
 	}
 
 	.common-ports {
-		@apply mt-3;
+		margin-top: 0.75rem;
 	}
 
 	.common-ports-label {
-		@apply block text-sm text-gray-600 dark:text-terminal-light mb-2;
+		display: block;
+		font-size: 0.875rem;
+		color: #6b7280;
+		margin-bottom: 0.5rem;
 	}
 
 	.common-ports-grid {
-		@apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.common-ports-grid {
+			grid-template-columns: repeat(3, 1fr);
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.common-ports-grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
 	}
 
 	.port-button {
-		@apply px-3 py-1 text-xs border border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker hover:bg-gray-50 dark:hover:bg-terminal-gray/20
-		       text-gray-700 dark:text-terminal-light
-		       rounded transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		padding: 0.25rem 0.75rem;
+		font-size: 0.75rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #374151;
+		border-radius: 0.25rem;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.port-button:hover:not(:disabled) {
+		background-color: #f9fafb;
+	}
+
+	.port-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.port-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.port-button.active {
-		@apply bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700
-		       text-blue-700 dark:text-blue-300;
+		background-color: #dbeafe;
+		border-color: #93c5fd;
+		color: #1d4ed8;
 	}
 
 	.checkbox-group {
-		@apply flex items-center;
+		display: flex;
+		align-items: center;
 	}
 
 	.form-checkbox {
-		@apply w-4 h-4 text-blue-600 border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker
-		       rounded focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		width: 1rem;
+		height: 1rem;
+		color: #2563eb;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		border-radius: 0.25rem;
+	}
+
+	.form-checkbox:focus {
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.form-checkbox:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.checkbox-label {
-		@apply ml-3 text-sm font-medium text-gray-700 dark:text-terminal-light
-		       cursor-pointer;
+		margin-left: 0.75rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
+		cursor: pointer;
 	}
 
 	.form-help {
-		@apply mt-1 text-xs text-gray-500 dark:text-terminal-light/70;
+		margin-top: 0.25rem;
+		font-size: 0.75rem;
+		color: #6b7280;
 	}
 
 	.form-error {
-		@apply mt-1 text-sm text-red-600 dark:text-red-400;
+		margin-top: 0.25rem;
+		font-size: 0.875rem;
+		color: #dc2626;
 	}
 
 	/* ダークモード対応 */
 	@media (prefers-color-scheme: dark) {
 		.config-section {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.section-title {
-			@apply text-terminal-white border-terminal-gray;
+			color: #f9fafb;
+			border-color: #4b5563;
+		}
+
+		.form-group.keep-alive-settings,
+		.form-group.reconnect-settings {
+			border-left-color: #1e40af;
 		}
 		
 		.form-label {
-			@apply text-terminal-light;
+			color: #d1d5db;
 		}
 		
 		.form-input {
-			@apply bg-terminal-darker border-terminal-gray text-terminal-white;
+			background-color: #1f2937;
+			border-color: #4b5563;
+			color: #f9fafb;
+		}
+
+		.form-input:disabled {
+			background-color: rgba(31, 41, 55, 0.5);
+			color: #9ca3af;
+		}
+
+		.form-input.error {
+			border-color: #f87171;
+		}
+
+		.common-ports-label {
+			color: #d1d5db;
 		}
 		
 		.port-button {
-			@apply bg-terminal-darker border-terminal-gray text-terminal-light
-			       hover:bg-terminal-gray/20;
+			background-color: #1f2937;
+			border-color: #4b5563;
+			color: #d1d5db;
+		}
+
+		.port-button:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.2);
+		}
+
+		.port-button.active {
+			background-color: rgba(37, 99, 235, 0.3);
+			border-color: #3b82f6;
+			color: #93c5fd;
 		}
 		
 		.form-checkbox {
-			@apply border-terminal-gray bg-terminal-darker;
+			border-color: #4b5563;
+			background-color: #1f2937;
 		}
 		
 		.checkbox-label {
-			@apply text-terminal-light;
+			color: #d1d5db;
 		}
 		
 		.form-help {
-			@apply text-terminal-light/70;
+			color: rgba(209, 213, 219, 0.7);
+		}
+
+		.form-error {
+			color: #f87171;
 		}
 	}
 </style>

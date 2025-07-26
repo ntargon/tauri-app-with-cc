@@ -338,179 +338,345 @@
 
 <style>
 	.terminal-input {
-		@apply bg-white dark:bg-terminal-dark 
-		       border border-gray-200 dark:border-terminal-gray 
-		       rounded-lg overflow-hidden;
+		background-color: white;
+		border: 1px solid #e5e7eb;
+		border-radius: 0.5rem;
+		overflow: hidden;
 	}
 
 	.settings-panel {
-		@apply p-3 bg-gray-50 dark:bg-terminal-darker
-		       border-b border-gray-200 dark:border-terminal-gray;
+		padding: 0.75rem;
+		background-color: #f9fafb;
+		border-bottom: 1px solid #e5e7eb;
 	}
 
 	.settings-row {
-		@apply flex flex-wrap items-center gap-4;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 1rem;
 	}
 
 	.setting-group {
-		@apply flex items-center space-x-2;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
 	}
 
 	.setting-label {
-		@apply text-sm font-medium text-gray-700 dark:text-terminal-light;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
 	}
 
 	.setting-select {
-		@apply px-2 py-1 text-sm border border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded focus:outline-none focus:ring-2 focus:ring-blue-500;
+		padding: 0.25rem 0.5rem;
+		font-size: 0.875rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.25rem;
+	}
+
+	.setting-select:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
 	}
 
 	.setting-checkbox {
-		@apply flex items-center cursor-pointer;
+		display: flex;
+		align-items: center;
+		cursor: pointer;
 	}
 
 	.setting-checkbox input[type="checkbox"] {
-		@apply w-4 h-4 text-blue-600 border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker rounded
-		       focus:ring-blue-500;
+		width: 1rem;
+		height: 1rem;
+		color: #2563eb;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		border-radius: 0.25rem;
+	}
+
+	.setting-checkbox input[type="checkbox"]:focus {
+		box-shadow: 0 0 0 2px #3b82f6;
 	}
 
 	.checkbox-label {
-		@apply ml-2 text-sm font-medium text-gray-700 dark:text-terminal-light;
+		margin-left: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
 	}
 
 	.commands-panel {
-		@apply p-3 border-b border-gray-200 dark:border-terminal-gray;
+		padding: 0.75rem;
+		border-bottom: 1px solid #e5e7eb;
 	}
 
 	.commands-label {
-		@apply block text-sm font-medium text-gray-700 dark:text-terminal-light mb-2;
+		display: block;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: #374151;
+		margin-bottom: 0.5rem;
 	}
 
 	.commands-grid {
-		@apply grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2;
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.5rem;
+	}
+
+	@media (min-width: 640px) {
+		.commands-grid {
+			grid-template-columns: repeat(4, 1fr);
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.commands-grid {
+			grid-template-columns: repeat(8, 1fr);
+		}
 	}
 
 	.command-button {
-		@apply px-3 py-1 text-xs bg-gray-100 dark:bg-terminal-gray/30
-		       hover:bg-gray-200 dark:hover:bg-terminal-gray/50
-		       text-gray-700 dark:text-terminal-light
-		       border border-gray-300 dark:border-terminal-gray rounded
-		       transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		padding: 0.25rem 0.75rem;
+		font-size: 0.75rem;
+		background-color: #f3f4f6;
+		color: #374151;
+		border: 1px solid #d1d5db;
+		border-radius: 0.25rem;
+		transition: all 0.2s;
+		cursor: pointer;
+	}
+
+	.command-button:hover:not(:disabled) {
+		background-color: #e5e7eb;
+	}
+
+	.command-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
+	}
+
+	.command-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.input-area {
-		@apply p-3;
+		padding: 0.75rem;
 	}
 
 	.input-container {
-		@apply relative;
+		position: relative;
 	}
 
 	.input-field {
-		@apply w-full px-3 py-2 pr-20 border border-gray-300 dark:border-terminal-gray
-		       bg-white dark:bg-terminal-darker text-gray-900 dark:text-terminal-white
-		       rounded-md resize-none font-mono
-		       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-		       disabled:bg-gray-50 dark:disabled:bg-terminal-darker/50 disabled:text-gray-500;
+		width: 100%;
+		padding: 0.5rem 5rem 0.5rem 0.75rem;
+		border: 1px solid #d1d5db;
+		background-color: white;
+		color: #111827;
+		border-radius: 0.375rem;
+		resize: none;
+		font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, monospace;
+	}
+
+	.input-field:focus {
+		outline: none;
+		border-color: #3b82f6;
+		box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+	}
+
+	.input-field:disabled {
+		background-color: #f9fafb;
+		color: #9ca3af;
 	}
 
 	.input-field.hex-mode {
-		@apply font-mono tracking-wider uppercase;
+		font-family: ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, monospace;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
 	}
 
 	.input-actions {
-		@apply absolute right-2 bottom-2 flex space-x-1;
+		position: absolute;
+		right: 0.5rem;
+		bottom: 0.5rem;
+		display: flex;
+		gap: 0.25rem;
 	}
 
 	.action-button {
-		@apply p-2 rounded-md transition-colors
-		       focus:outline-none focus:ring-2 focus:ring-blue-500
-		       disabled:opacity-50 disabled:cursor-not-allowed;
+		padding: 0.5rem;
+		border: none;
+		border-radius: 0.375rem;
+		transition: all 0.2s;
+		cursor: pointer;
+		background-color: transparent;
+	}
+
+	.action-button:focus {
+		outline: none;
+		box-shadow: 0 0 0 2px #3b82f6;
+	}
+
+	.action-button:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 
 	.clear-button {
-		@apply text-gray-500 dark:text-terminal-light/70
-		       hover:bg-gray-100 dark:hover:bg-terminal-gray/20
-		       hover:text-gray-700 dark:hover:text-terminal-light;
+		color: #6b7280;
+	}
+
+	.clear-button:hover:not(:disabled) {
+		background-color: #f3f4f6;
+		color: #374151;
 	}
 
 	.send-button {
-		@apply text-blue-600 dark:text-blue-400
-		       hover:bg-blue-50 dark:hover:bg-blue-900/20
-		       hover:text-blue-700 dark:hover:text-blue-300;
+		color: #2563eb;
+	}
+
+	.send-button:hover:not(:disabled) {
+		background-color: #eff6ff;
+		color: #1d4ed8;
 	}
 
 	.input-status {
-		@apply flex items-center justify-between mt-2 text-sm;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 0.5rem;
+		font-size: 0.875rem;
 	}
 
 	.status-disconnected {
-		@apply text-red-600 dark:text-red-400 font-medium;
+		color: #dc2626;
+		font-weight: 500;
 	}
 
 	.status-connected {
-		@apply text-green-600 dark:text-green-400 font-medium;
+		color: #059669;
+		font-weight: 500;
 	}
 
 	.char-count {
-		@apply text-gray-500 dark:text-terminal-light/70;
+		color: #6b7280;
 	}
 
 	/* ダークモード対応 */
 	@media (prefers-color-scheme: dark) {
 		.terminal-input {
-			@apply bg-terminal-dark border-terminal-gray;
+			background-color: #374151;
+			border-color: #4b5563;
 		}
 		
 		.settings-panel,
 		.commands-panel {
-			@apply bg-terminal-darker border-terminal-gray;
+			background-color: #1f2937;
+			border-color: #4b5563;
 		}
 		
 		.setting-label,
 		.checkbox-label,
 		.commands-label {
-			@apply text-terminal-light;
+			color: #d1d5db;
 		}
 		
 		.setting-select {
-			@apply bg-terminal-darker border-terminal-gray text-terminal-white;
+			background-color: #1f2937;
+			border-color: #4b5563;
+			color: #f9fafb;
 		}
 		
 		.setting-checkbox input[type="checkbox"] {
-			@apply bg-terminal-darker border-terminal-gray;
+			background-color: #1f2937;
+			border-color: #4b5563;
 		}
 		
 		.command-button {
-			@apply bg-terminal-gray/30 hover:bg-terminal-gray/50
-			       text-terminal-light border-terminal-gray;
+			background-color: rgba(75, 85, 99, 0.3);
+			color: #d1d5db;
+			border-color: #4b5563;
+		}
+
+		.command-button:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.5);
 		}
 		
 		.input-field {
-			@apply bg-terminal-darker border-terminal-gray text-terminal-white;
+			background-color: #1f2937;
+			border-color: #4b5563;
+			color: #f9fafb;
+		}
+
+		.input-field:disabled {
+			background-color: rgba(31, 41, 55, 0.5);
+			color: #9ca3af;
 		}
 		
 		.clear-button {
-			@apply text-terminal-light/70 hover:bg-terminal-gray/20 hover:text-terminal-light;
+			color: rgba(209, 213, 219, 0.7);
+		}
+
+		.clear-button:hover:not(:disabled) {
+			background-color: rgba(75, 85, 99, 0.2);
+			color: #d1d5db;
 		}
 		
 		.send-button {
-			@apply text-blue-400 hover:bg-blue-900/20 hover:text-blue-300;
+			color: #60a5fa;
+		}
+
+		.send-button:hover:not(:disabled) {
+			background-color: rgba(37, 99, 235, 0.2);
+			color: #93c5fd;
 		}
 		
 		.status-disconnected {
-			@apply text-red-400;
+			color: #f87171;
 		}
 		
 		.status-connected {
-			@apply text-green-400;
+			color: #10b981;
 		}
 		
 		.char-count {
-			@apply text-terminal-light/70;
+			color: rgba(209, 213, 219, 0.7);
+		}
+	}
+
+	/* アニメーション */
+	.animate-spin {
+		animation: spin 1s linear infinite;
+	}
+
+	.opacity-25 {
+		opacity: 0.25;
+	}
+
+	.opacity-75 {
+		opacity: 0.75;
+	}
+
+	.w-4 {
+		width: 1rem;
+	}
+
+	.h-4 {
+		height: 1rem;
+	}
+
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
 		}
 	}
 </style>
