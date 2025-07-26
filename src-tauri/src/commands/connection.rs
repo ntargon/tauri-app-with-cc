@@ -1,5 +1,5 @@
 use crate::communication::{ConnectionError, ConnectionManager, SerialHandler};
-use crate::models::{ConnectionConfig, ConnectionType, SerialConfig, TcpConfig, DataBits, StopBits, Parity, FlowControl, TerminalMessage};
+use crate::models::{ConnectionConfig, ConnectionType, SerialConfig, TcpConfig, DataBits, StopBits, Parity, FlowControl, TerminalMessage, MessageDirection};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::Duration;
@@ -13,6 +13,7 @@ pub struct AppState {
     pub connection_manager: Arc<Mutex<ConnectionManager>>,
     pub message_receiver: Arc<Mutex<Option<mpsc::UnboundedReceiver<TerminalMessage>>>>,
     pub message_sender: Arc<Mutex<Option<mpsc::UnboundedSender<TerminalMessage>>>>,
+    pub message_handler_started: Arc<Mutex<bool>>,
 }
 
 impl AppState {
@@ -22,6 +23,7 @@ impl AppState {
             connection_manager: Arc::new(Mutex::new(ConnectionManager::new())),
             message_receiver: Arc::new(Mutex::new(Some(rx))),
             message_sender: Arc::new(Mutex::new(Some(tx))),
+            message_handler_started: Arc::new(Mutex::new(false)),
         }
     }
 }
@@ -79,6 +81,17 @@ pub struct FrontendConnectionConfig {
     pub port: Option<u16>,
 }
 
+// フロントエンド向けメッセージ（TypeScript側との互換性）
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FrontendTerminalMessage {
+    pub id: String,
+    pub timestamp: String,
+    pub direction: String, // "sent" or "received"
+    pub content: String,
+    #[serde(rename = "type")]
+    pub message_type: String, // "text" or "hex"
+}
+
 // 型変換関数
 impl FrontendConnectionConfig {
     pub fn to_backend_config(self) -> Result<ConnectionConfig, String> {
@@ -133,6 +146,24 @@ impl FrontendConnectionConfig {
                 })
             },
             _ => Err(format!("サポートされていない接続タイプです: {}", self.connection_type)),
+        }
+    }
+}
+
+// バックエンドメッセージをフロントエンド形式に変換
+impl From<TerminalMessage> for FrontendTerminalMessage {
+    fn from(msg: TerminalMessage) -> Self {
+        let direction = match msg.direction {
+            MessageDirection::Sent => "sent",
+            MessageDirection::Received => "received",
+        };
+        
+        Self {
+            id: msg.id,
+            timestamp: msg.timestamp.to_rfc3339(),
+            direction: direction.to_string(),
+            content: msg.content,
+            message_type: "text".to_string(),
         }
     }
 }
@@ -216,7 +247,7 @@ pub async fn connect_device(
     };
 
     // 受信メッセージ処理を開始（初回のみ）
-    start_message_handling(app_handle.clone(), state.message_receiver.clone()).await;
+    start_message_handling(app_handle.clone(), state.message_receiver.clone(), state.message_handler_started.clone()).await;
 
     // 接続実行
     match connection_manager.connect(backend_config.clone(), message_tx).await {
@@ -313,20 +344,38 @@ pub async fn get_connection_info(
 // メッセージハンドリングの開始（一度だけ実行される）
 async fn start_message_handling(
     app_handle: AppHandle,
-    message_receiver: Arc<Mutex<Option<mpsc::UnboundedReceiver<TerminalMessage>>>>
+    message_receiver: Arc<Mutex<Option<mpsc::UnboundedReceiver<TerminalMessage>>>>,
+    handler_started: Arc<Mutex<bool>>,
 ) {
+    let mut started_guard = handler_started.lock().await;
+    if *started_guard {
+        info!("⚠️ メッセージハンドリングループは既に開始済みです");
+        return;
+    }
+    *started_guard = true;
+    drop(started_guard);
+    
     let mut receiver_guard = message_receiver.lock().await;
     
     if let Some(mut rx) = receiver_guard.take() {
         tokio::spawn(async move {
-            info!("Starting message handling loop");
+            info!("🚀 メッセージハンドリングループを開始します");
             
             while let Some(message) = rx.recv().await {
                 debug!("Received message: {:?}", message);
                 
+                // バックエンドメッセージをフロントエンド形式に変換
+                let frontend_message = FrontendTerminalMessage::from(message);
+                info!("🔄 メッセージ変換完了: {:?}", frontend_message);
+                
                 // フロントエンドにメッセージを送信
-                if let Err(e) = app_handle.emit("terminal-message-received", &message) {
-                    error!("Failed to emit terminal message: {}", e);
+                match app_handle.emit("terminal-message-received", &frontend_message) {
+                    Ok(_) => {
+                        info!("✅ フロントエンドへメッセージ送信成功: {}", frontend_message.content);
+                    }
+                    Err(e) => {
+                        error!("❌ フロントエンドへのメッセージ送信失敗: {}", e);
+                    }
                 }
             }
             

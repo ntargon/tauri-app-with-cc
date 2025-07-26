@@ -134,11 +134,8 @@ impl ConnectionManager {
             let data = message.as_bytes();
             handler.send(data).await?;
             
-            // 送信メッセージをログに記録
-            if let Some(tx) = &self.message_sender {
-                let terminal_message = TerminalMessage::new_sent(message, "UTF-8".to_string());
-                let _ = tx.send(terminal_message);
-            }
+            // 送信メッセージはフロントエンドで既に表示しているため、
+            // バックエンドでは受信メッセージのみをチャンネルに送信する
             
             Ok(())
         } else {

@@ -1,7 +1,13 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { appState, actions } from '$lib/stores';
   import MessageList from './MessageList.svelte';
   import InputArea from './InputArea.svelte';
+
+  onMount(() => {
+    // イベントリスナーを初期化
+    actions.initializeEventListeners();
+  });
 </script>
 
 <div class="flex-1 flex flex-col min-w-0">

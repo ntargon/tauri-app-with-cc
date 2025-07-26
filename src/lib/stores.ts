@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import type { AppState, ConnectionConfig, TerminalMessage, ApiResponse } from './types';
 import { generateId, validateSerialPort, validateTcpConnection } from './utils';
 
@@ -27,6 +28,10 @@ export const sidebarCollapsed = writable<boolean>(false);
 export const currentInput = writable<string>('');
 export const inputMode = writable<'text' | 'hex'>('text');
 export const availablePorts = writable<string[]>([]);
+
+// イベントリスナー管理
+let listenersInitialized = false;
+let lastMessageId = '';
 
 // 接続設定フォーム状態
 export const connectionForm = writable<ConnectionConfig>({
@@ -198,5 +203,89 @@ export const actions = {
 
   toggleSidebar() {
     sidebarCollapsed.update(value => !value);
+  },
+
+  // Tauriイベントリスナーを初期化
+  async initializeEventListeners() {
+    if (listenersInitialized) {
+      console.log('⚠️ イベントリスナーは既に初期化済みです');
+      return;
+    }
+    
+    try {
+      console.log('🚀 イベントリスナーを初期化中...');
+      // 受信メッセージのリスナー
+      await listen('terminal-message-received', (event) => {
+        console.log('✅ 受信メッセージイベント:', event.payload);
+        console.log('📨 イベント詳細:', {
+          eventType: event.event,
+          windowLabel: event.windowLabel,
+          payloadType: typeof event.payload
+        });
+        
+        const backendMessage = event.payload as any;
+        console.log('🔄 バックエンドメッセージ:', backendMessage);
+        
+        // 重複メッセージをチェック
+        const messageId = backendMessage.id || generateId();
+        if (messageId === lastMessageId) {
+          console.log('⚠️ 重複メッセージを検出、スキップします:', messageId);
+          return;
+        }
+        lastMessageId = messageId;
+        
+        // バックエンドのメッセージを適切なフォーマットに変換
+        const frontendMessage: TerminalMessage = {
+          id: messageId,
+          timestamp: backendMessage.timestamp || new Date().toISOString(),
+          direction: 'received',
+          content: backendMessage.content || '',
+          type: backendMessage.type || 'text'
+        };
+
+        console.log('⚡ フロントエンドメッセージに変換:', frontendMessage);
+
+        // メッセージをストアに追加
+        appState.update(state => {
+          const newState = {
+            ...state,
+            messages: [...state.messages, frontendMessage]
+          };
+          console.log('📝 ストア更新:', { 
+            前のメッセージ数: state.messages.length, 
+            新しいメッセージ数: newState.messages.length 
+          });
+          return newState;
+        });
+      });
+
+      // 接続状態変更のリスナー  
+      await listen('connection-status-changed', (event) => {
+        console.log('接続状態変更イベント:', event.payload);
+        const [status, info] = event.payload as [string, string];
+        
+        if (status === 'connected') {
+          appState.update(state => ({
+            ...state,
+            connection: { ...state.connection, isConnected: true, error: null }
+          }));
+        } else if (status === 'disconnected') {
+          appState.update(state => ({
+            ...state,
+            connection: { ...state.connection, isConnected: false, config: null }
+          }));
+        } else if (status === 'error') {
+          appState.update(state => ({
+            ...state,
+            connection: { ...state.connection, error: info, isConnecting: false }
+          }));
+        }
+      });
+
+      listenersInitialized = true;
+      console.log('✅ イベントリスナーが初期化されました');
+    } catch (error) {
+      console.error('❌ イベントリスナー初期化エラー:', error);
+    }
   }
 };
