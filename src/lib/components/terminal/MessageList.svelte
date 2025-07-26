@@ -3,9 +3,9 @@
   import MessageItem from './MessageItem.svelte';
 </script>
 
-<div class="h-full overflow-y-auto p-4 space-y-2">
+<div class="h-full overflow-y-auto">
   {#if $appState.messages.length === 0}
-    <div class="text-center text-gray-500 mt-8">
+    <div class="text-center text-gray-500 mt-8 px-4">
       <p>メッセージはまだありません</p>
       <p class="text-xs mt-1">接続してデータを送受信してください</p>
     </div>

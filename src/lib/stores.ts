@@ -208,28 +208,17 @@ export const actions = {
   // Tauriイベントリスナーを初期化
   async initializeEventListeners() {
     if (listenersInitialized) {
-      console.log('⚠️ イベントリスナーは既に初期化済みです');
       return;
     }
     
     try {
-      console.log('🚀 イベントリスナーを初期化中...');
       // 受信メッセージのリスナー
       await listen('terminal-message-received', (event) => {
-        console.log('✅ 受信メッセージイベント:', event.payload);
-        console.log('📨 イベント詳細:', {
-          eventType: event.event,
-          windowLabel: event.windowLabel,
-          payloadType: typeof event.payload
-        });
-        
         const backendMessage = event.payload as any;
-        console.log('🔄 バックエンドメッセージ:', backendMessage);
         
         // 重複メッセージをチェック
         const messageId = backendMessage.id || generateId();
         if (messageId === lastMessageId) {
-          console.log('⚠️ 重複メッセージを検出、スキップします:', messageId);
           return;
         }
         lastMessageId = messageId;
@@ -243,25 +232,15 @@ export const actions = {
           type: backendMessage.type || 'text'
         };
 
-        console.log('⚡ フロントエンドメッセージに変換:', frontendMessage);
-
         // メッセージをストアに追加
-        appState.update(state => {
-          const newState = {
-            ...state,
-            messages: [...state.messages, frontendMessage]
-          };
-          console.log('📝 ストア更新:', { 
-            前のメッセージ数: state.messages.length, 
-            新しいメッセージ数: newState.messages.length 
-          });
-          return newState;
-        });
+        appState.update(state => ({
+          ...state,
+          messages: [...state.messages, frontendMessage]
+        }));
       });
 
       // 接続状態変更のリスナー  
       await listen('connection-status-changed', (event) => {
-        console.log('接続状態変更イベント:', event.payload);
         const [status, info] = event.payload as [string, string];
         
         if (status === 'connected') {
@@ -283,9 +262,8 @@ export const actions = {
       });
 
       listenersInitialized = true;
-      console.log('✅ イベントリスナーが初期化されました');
     } catch (error) {
-      console.error('❌ イベントリスナー初期化エラー:', error);
+      console.error('イベントリスナー初期化エラー:', error);
     }
   }
 };

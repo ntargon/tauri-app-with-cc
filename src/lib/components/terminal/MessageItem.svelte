@@ -6,17 +6,14 @@
   export let message: TerminalMessage;
 </script>
 
-<div class="flex {message.direction === 'sent' ? 'justify-end' : 'justify-start'}">
-  <div class="max-w-xs lg:max-w-md px-3 py-2 rounded-lg {
-    message.direction === 'sent' 
-      ? 'bg-blue-600 text-white' 
-      : 'bg-gray-700 text-green-400'
-  }">
+<div class="text-sm font-mono leading-tight py-0.5 px-2 hover:bg-gray-800/50 transition-colors">
+  <span class="text-gray-500 text-xs">
     {#if $appState.settings.showTimestamps}
-      <div class="text-xs opacity-75 mb-1">
-        {formatTimestamp(new Date(message.timestamp))}
-      </div>
+      [{formatTimestamp(new Date(message.timestamp))}]
     {/if}
-    <div class="whitespace-pre-wrap break-words">{message.content}</div>
-  </div>
+    {message.direction === 'sent' ? '>' : '<'}
+  </span>
+  <span class="ml-2 {message.direction === 'sent' ? 'text-blue-400' : 'text-green-400'} whitespace-pre-wrap break-all">
+    {message.content}
+  </span>
 </div>
