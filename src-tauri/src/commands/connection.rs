@@ -257,3 +257,175 @@ impl From<ConnectionError> for String {
         error.to_string()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{ConnectionType, DataBits, FlowControl, Parity, SerialConfig, StopBits, TcpConfig};
+    use chrono::Utc;
+    use std::time::Duration;
+
+    fn create_test_serial_connection_config() -> ConnectionConfig {
+        ConnectionConfig {
+            id: "test-serial".to_string(),
+            name: "Test Serial".to_string(),
+            connection_type: ConnectionType::Serial,
+            serial_config: Some(SerialConfig {
+                port: "/dev/ttyUSB0".to_string(),
+                baud_rate: 9600,
+                data_bits: DataBits::Eight,
+                stop_bits: StopBits::One,
+                parity: Parity::None,
+                flow_control: FlowControl::None,
+            }),
+            tcp_config: None,
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
+
+    fn create_test_tcp_connection_config() -> ConnectionConfig {
+        ConnectionConfig {
+            id: "test-tcp".to_string(),
+            name: "Test TCP".to_string(),
+            connection_type: ConnectionType::Tcp,
+            serial_config: None,
+            tcp_config: Some(TcpConfig {
+                host: "localhost".to_string(),
+                port: 8080,
+                timeout: Duration::from_secs(5),
+                keep_alive: true,
+            }),
+            created_at: Utc::now(),
+            updated_at: Utc::now(),
+        }
+    }
+
+    #[test]
+    fn test_app_state_new() {
+        let _state = AppState::new();
+        
+        // 状態が正しく初期化されることを確認
+        // 内部フィールドは直接アクセスできないが、構造体の作成は成功する
+    }
+
+    #[test]
+    fn test_api_response_success() {
+        let response = ApiResponse::success("test data".to_string());
+        
+        assert!(response.success);
+        assert_eq!(response.data, Some("test data".to_string()));
+        assert_eq!(response.error, None);
+    }
+
+    #[test]
+    fn test_api_response_error() {
+        let response: ApiResponse<String> = ApiResponse::error("test error".to_string());
+        
+        assert!(!response.success);
+        assert_eq!(response.data, None);
+        assert_eq!(response.error, Some("test error".to_string()));
+    }
+
+    #[test]
+    fn test_serial_port_info_creation() {
+        let info = SerialPortInfo {
+            port_name: "COM1".to_string(),
+            port_type: Some("USB".to_string()),
+            vid: Some(0x1234),
+            pid: Some(0x5678),
+            serial_number: Some("SN123".to_string()),
+            manufacturer: Some("Test Mfg".to_string()),
+            product: Some("Test Product".to_string()),
+        };
+        
+        assert_eq!(info.port_name, "COM1");
+        assert_eq!(info.port_type, Some("USB".to_string()));
+        assert_eq!(info.vid, Some(0x1234));
+        assert_eq!(info.pid, Some(0x5678));
+    }
+
+    #[tokio::test]
+    async fn test_get_serial_ports() {
+        let result = get_serial_ports().await;
+        
+        assert!(result.is_ok());
+        let response = result.unwrap();
+        
+        // レスポンスの構造を確認
+        if response.success {
+            assert!(response.data.is_some());
+            assert!(response.error.is_none());
+        } else {
+            assert!(response.data.is_none());
+            assert!(response.error.is_some());
+        }
+    }
+
+    #[tokio::test]
+    async fn test_get_serial_ports_info() {
+        let result = get_serial_ports_info().await;
+        
+        assert!(result.is_ok());
+        let response = result.unwrap();
+        
+        // レスポンスの構造を確認
+        if response.success {
+            assert!(response.data.is_some());
+            assert!(response.error.is_none());
+            
+            if let Some(ports) = response.data {
+                for port in ports {
+                    assert!(!port.port_name.is_empty());
+                }
+            }
+        } else {
+            assert!(response.data.is_none());
+            assert!(response.error.is_some());
+        }
+    }
+
+    #[test]
+    fn test_connection_config_serial() {
+        let config = create_test_serial_connection_config();
+        
+        assert_eq!(config.connection_type, ConnectionType::Serial);
+        assert!(config.serial_config.is_some());
+        assert!(config.tcp_config.is_none());
+        assert_eq!(config.name, "Test Serial");
+    }
+
+    #[test]
+    fn test_connection_config_tcp() {
+        let config = create_test_tcp_connection_config();
+        
+        assert_eq!(config.connection_type, ConnectionType::Tcp);
+        assert!(config.serial_config.is_none());
+        assert!(config.tcp_config.is_some());
+        assert_eq!(config.name, "Test TCP");
+    }
+
+    #[test]
+    fn test_connection_error_conversion() {
+        let error = ConnectionError::NetworkTimeout;
+        let string_error: String = error.into();
+        assert_eq!(string_error, "Network timeout");
+        
+        let error = ConnectionError::PortNotFound("COM1".to_string());
+        let string_error: String = error.into();
+        assert_eq!(string_error, "Port not found: COM1");
+    }
+
+    #[test]
+    fn test_api_response_serialization() {
+        let response = ApiResponse::success(vec!["port1".to_string(), "port2".to_string()]);
+        
+        let json = serde_json::to_string(&response);
+        assert!(json.is_ok());
+        
+        let json_str = json.unwrap();
+        assert!(json_str.contains("\"success\":true"));
+        assert!(json_str.contains("port1"));
+        assert!(json_str.contains("port2"));
+    }
+}

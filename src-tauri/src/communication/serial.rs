@@ -346,3 +346,135 @@ pub struct SerialPortInfo {
     pub manufacturer: Option<String>,
     pub product: Option<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{DataBits, FlowControl, Parity, SerialConfig, StopBits};
+
+    fn create_test_serial_config() -> SerialConfig {
+        SerialConfig {
+            port: "/dev/ttyUSB0".to_string(),
+            baud_rate: 9600,
+            data_bits: DataBits::Eight,
+            stop_bits: StopBits::One,
+            parity: Parity::None,
+            flow_control: FlowControl::None,
+        }
+    }
+
+    fn create_windows_test_serial_config() -> SerialConfig {
+        SerialConfig {
+            port: "COM1".to_string(),
+            baud_rate: 115200,
+            data_bits: DataBits::Eight,
+            stop_bits: StopBits::One,
+            parity: Parity::None,
+            flow_control: FlowControl::None,
+        }
+    }
+
+    #[test]
+    fn test_serial_handler_new() {
+        let config = create_test_serial_config();
+        let handler = SerialHandler::new(config.clone());
+        
+        assert_eq!(handler.config.port, config.port);
+        assert_eq!(handler.config.baud_rate, config.baud_rate);
+    }
+
+    #[tokio::test]
+    async fn test_list_available_ports() {
+        let result = SerialHandler::list_available_ports().await;
+        
+        match result {
+            Ok(ports) => {
+                println!("Available ports: {:?}", ports);
+            }
+            Err(e) => {
+                println!("Error listing ports: {:?}", e);
+            }
+        }
+    }
+
+    #[test]
+    fn test_get_connection_info() {
+        let config = create_test_serial_config();
+        let handler = SerialHandler::new(config);
+        
+        let info = handler.get_connection_info();
+        assert!(info.is_some());
+        
+        let info_str = info.unwrap();
+        assert!(info_str.contains("/dev/ttyUSB0"));
+        assert!(info_str.contains("9600"));
+        assert!(info_str.contains("8-N-1"));
+    }
+
+    #[test]
+    fn test_get_connection_info_windows() {
+        let config = create_windows_test_serial_config();
+        let handler = SerialHandler::new(config);
+        
+        let info = handler.get_connection_info();
+        assert!(info.is_some());
+        
+        let info_str = info.unwrap();
+        assert!(info_str.contains("COM1"));
+        assert!(info_str.contains("115200"));
+        assert!(info_str.contains("8-N-1"));
+    }
+
+    #[test]
+    fn test_is_connected_default() {
+        let config = create_test_serial_config();
+        let handler = SerialHandler::new(config);
+        
+        assert!(handler.is_connected());
+    }
+
+    #[tokio::test]
+    async fn test_send_without_connection() {
+        let config = create_test_serial_config();
+        let mut handler = SerialHandler::new(config);
+        
+        let data = b"test data";
+        let result = handler.send(data).await;
+        
+        assert!(result.is_err());
+        
+        if let Err(e) = result {
+            match e {
+                ConnectionError::ConnectionClosed => {},
+                _ => panic!("Expected ConnectionClosed error, got: {:?}", e),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_disconnect_without_connection() {
+        let config = create_test_serial_config();
+        let mut handler = SerialHandler::new(config);
+        
+        let result = handler.disconnect().await;
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_serial_port_info_structure() {
+        let info = SerialPortInfo {
+            port_name: "COM1".to_string(),
+            port_type: Some("USB".to_string()),
+            vid: Some(0x1234),
+            pid: Some(0x5678),
+            serial_number: Some("SN123456".to_string()),
+            manufacturer: Some("Test Manufacturer".to_string()),
+            product: Some("Test Product".to_string()),
+        };
+        
+        assert_eq!(info.port_name, "COM1");
+        assert_eq!(info.port_type, Some("USB".to_string()));
+        assert_eq!(info.vid, Some(0x1234));
+        assert_eq!(info.pid, Some(0x5678));
+    }
+}

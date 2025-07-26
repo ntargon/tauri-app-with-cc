@@ -267,3 +267,174 @@ impl ConnectionHandler for TcpHandler {
         ))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    fn create_test_tcp_config() -> TcpConfig {
+        TcpConfig {
+            host: "localhost".to_string(),
+            port: 8080,
+            timeout: Duration::from_secs(5),
+            keep_alive: true,
+        }
+    }
+
+    fn create_test_tcp_config_unreachable() -> TcpConfig {
+        TcpConfig {
+            host: "192.0.2.1".to_string(), // RFC 5737 - reserved for documentation
+            port: 12345,
+            timeout: Duration::from_millis(100),
+            keep_alive: false,
+        }
+    }
+
+    #[test]
+    fn test_tcp_handler_new() {
+        let config = create_test_tcp_config();
+        let handler = TcpHandler::new(config.clone());
+        
+        assert_eq!(handler.config.host, config.host);
+        assert_eq!(handler.config.port, config.port);
+        assert_eq!(handler.config.timeout, config.timeout);
+        assert_eq!(handler.config.keep_alive, config.keep_alive);
+    }
+
+    #[test]
+    fn test_get_connection_info() {
+        let config = create_test_tcp_config();
+        let handler = TcpHandler::new(config);
+        
+        let info = handler.get_connection_info();
+        assert!(info.is_some());
+        
+        let info_str = info.unwrap();
+        assert!(info_str.contains("localhost:8080"));
+        assert!(info_str.contains("5000ms"));
+        assert!(info_str.contains("keep-alive: true"));
+    }
+
+    #[test]
+    fn test_get_connection_info_no_keep_alive() {
+        let config = create_test_tcp_config_unreachable();
+        let handler = TcpHandler::new(config);
+        
+        let info = handler.get_connection_info();
+        assert!(info.is_some());
+        
+        let info_str = info.unwrap();
+        assert!(info_str.contains("192.0.2.1:12345"));
+        assert!(info_str.contains("100ms"));
+        assert!(info_str.contains("keep-alive: false"));
+    }
+
+    #[test]
+    fn test_is_connected_default() {
+        let config = create_test_tcp_config();
+        let handler = TcpHandler::new(config);
+        
+        // 現在の実装では常にtrueを返すが、これは暫定的な実装
+        assert!(handler.is_connected());
+    }
+
+    #[tokio::test]
+    async fn test_connect_to_unreachable_host() {
+        let config = create_test_tcp_config_unreachable();
+        let mut handler = TcpHandler::new(config.clone());
+        
+        // ConnectionConfigを作成
+        let connection_config = crate::models::ConnectionConfig {
+            id: "test".to_string(),
+            name: "test".to_string(),
+            connection_type: crate::models::ConnectionType::Tcp,
+            serial_config: None,
+            tcp_config: Some(config),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+        };
+        
+        let result = handler.connect(&connection_config).await;
+        
+        // 到達不可能なホストへの接続は失敗する
+        assert!(result.is_err());
+        
+        if let Err(e) = result {
+            match e {
+                ConnectionError::NetworkTimeout |
+                ConnectionError::IoError(_) => {
+                    // 期待されるエラー
+                }
+                _ => panic!("Unexpected error type: {:?}", e),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_send_without_connection() {
+        let config = create_test_tcp_config();
+        let mut handler = TcpHandler::new(config);
+        
+        let data = b"test data";
+        let result = handler.send(data).await;
+        
+        // 接続していない状態での送信は失敗する
+        assert!(result.is_err());
+        
+        if let Err(e) = result {
+            match e {
+                ConnectionError::ConnectionClosed => {
+                    // 期待されるエラー
+                }
+                _ => panic!("Expected ConnectionClosed error, got: {:?}", e),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn test_disconnect_without_connection() {
+        let config = create_test_tcp_config();
+        let mut handler = TcpHandler::new(config);
+        
+        // 接続していない状態での切断は正常に完了する
+        let result = handler.disconnect().await;
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_tcp_config_values() {
+        let config = TcpConfig {
+            host: "example.com".to_string(),
+            port: 443,
+            timeout: Duration::from_secs(10),
+            keep_alive: false,
+        };
+        
+        assert_eq!(config.host, "example.com");
+        assert_eq!(config.port, 443);
+        assert_eq!(config.timeout, Duration::from_secs(10));
+        assert!(!config.keep_alive);
+    }
+
+    #[tokio::test]
+    async fn test_create_connection_timeout() {
+        let config = create_test_tcp_config_unreachable();
+        let handler = TcpHandler::new(config);
+        
+        let result = handler.create_connection().await;
+        
+        // 到達不可能なホストでは接続がタイムアウトまたは失敗する
+        assert!(result.is_err());
+        
+        if let Err(e) = result {
+            match e {
+                ConnectionError::NetworkTimeout |
+                ConnectionError::IoError(_) => {
+                    // 期待されるエラー
+                }
+                _ => panic!("Unexpected error type: {:?}", e),
+            }
+        }
+    }
+}

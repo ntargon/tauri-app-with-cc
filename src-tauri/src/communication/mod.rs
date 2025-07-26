@@ -1,11 +1,15 @@
 pub mod serial;
 pub mod tcp;
+#[cfg(test)]
+mod tests;
 
 use crate::models::{ConnectionConfig, TerminalMessage};
 use async_trait::async_trait;
 // use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::mpsc;
+#[cfg(test)]
+use mockall::automock;
 
 pub use serial::SerialHandler;
 pub use tcp::TcpHandler;
@@ -43,6 +47,7 @@ pub enum ConnectionError {
 pub type ConnectionResult<T> = Result<T, ConnectionError>;
 
 #[async_trait]
+#[cfg_attr(test, automock)]
 pub trait ConnectionHandler: Send + Sync {
     async fn connect(&mut self, config: &ConnectionConfig) -> ConnectionResult<()>;
     async fn disconnect(&mut self) -> ConnectionResult<()>;

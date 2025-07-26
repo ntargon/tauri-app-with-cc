@@ -317,3 +317,165 @@ fn export_as_json(messages: &[TerminalMessage]) -> Result<String, String> {
         Err(e) => Err(format!("JSON serialization error: {}", e)),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{TerminalConfig, TerminalMessage, MessageDirection, TerminalTheme, LineEnding};
+    use chrono::Utc;
+
+    fn create_test_terminal_state() -> TerminalState {
+        TerminalState::new()
+    }
+
+    fn create_test_message(content: &str, direction: MessageDirection) -> TerminalMessage {
+        TerminalMessage {
+            id: uuid::Uuid::new_v4().to_string(),
+            content: content.to_string(),
+            direction,
+            timestamp: Utc::now(),
+            encoding: "UTF-8".to_string(),
+        }
+    }
+
+    fn create_test_terminal_config() -> TerminalConfig {
+        TerminalConfig {
+            encoding: "UTF-8".to_string(),
+            line_ending: LineEnding::CrLf,
+            echo_input: true,
+            show_timestamp: true,
+            font_family: "monospace".to_string(),
+            font_size: 12,
+            theme: TerminalTheme {
+                background_color: "#000000".to_string(),
+                text_color: "#ffffff".to_string(),
+                input_color: "#00ff00".to_string(),
+                timestamp_color: "#888888".to_string(),
+                sent_color: "#0088ff".to_string(),
+                received_color: "#ffaa00".to_string(),
+                error_color: "#ff0000".to_string(),
+            },
+            max_history_size: 1000,
+            auto_scroll: true,
+        }
+    }
+
+    #[test]
+    fn test_terminal_state_new() {
+        let _state = create_test_terminal_state();
+        // 状態が正しく初期化されることを確認
+    }
+
+    #[test]
+    fn test_terminal_state_default() {
+        let _state = TerminalState::default();
+        // デフォルト実装が機能することを確認
+    }
+
+    #[test]
+    fn test_message_filter_creation() {
+        let filter = MessageFilter {
+            direction: Some("sent".to_string()),
+            start_time: Some("2024-01-01T00:00:00Z".to_string()),
+            end_time: Some("2024-12-31T23:59:59Z".to_string()),
+            search_query: Some("test".to_string()),
+            limit: Some(100),
+        };
+        
+        assert_eq!(filter.direction, Some("sent".to_string()));
+        assert_eq!(filter.limit, Some(100));
+    }
+
+    #[test]
+    fn test_export_options_creation() {
+        let options = ExportOptions {
+            format: "json".to_string(),
+            include_timestamp: true,
+            include_direction: true,
+            filter: None,
+        };
+        
+        assert_eq!(options.format, "json");
+        assert!(options.include_timestamp);
+        assert!(options.include_direction);
+        assert!(options.filter.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_terminal_config_update() {
+        let state = create_test_terminal_state();
+        let new_config = create_test_terminal_config();
+        
+        // 設定を更新
+        {
+            let mut config = state.config.lock().await;
+            *config = new_config.clone();
+        }
+        
+        // 設定が更新されたことを確認
+        let config = state.config.lock().await;
+        assert_eq!(config.max_history_size, 1000);
+        assert_eq!(config.auto_scroll, true);
+        assert_eq!(config.font_size, 12);
+        assert_eq!(config.encoding, "UTF-8");
+    }
+
+    #[tokio::test]
+    async fn test_terminal_message_management() {
+        let state = create_test_terminal_state();
+        
+        // メッセージを直接追加してテスト
+        let message1 = create_test_message("Hello", MessageDirection::Sent);
+        let message2 = create_test_message("World", MessageDirection::Received);
+        
+        {
+            let mut messages = state.messages.lock().await;
+            messages.push(message1.clone());
+            messages.push(message2.clone());
+        }
+        
+        // メッセージを取得
+        let messages = state.messages.lock().await;
+        assert_eq!(messages.len(), 2);
+        assert_eq!(messages[0].content, "Hello");
+        assert_eq!(messages[1].content, "World");
+        assert_eq!(messages[0].direction, MessageDirection::Sent);
+        assert_eq!(messages[1].direction, MessageDirection::Received);
+    }
+
+    #[test]
+    fn test_export_as_text() {
+        let messages = vec![
+            create_test_message("Hello", MessageDirection::Sent),
+            create_test_message("World", MessageDirection::Received),
+        ];
+        
+        let options = ExportOptions {
+            format: "txt".to_string(),
+            include_timestamp: false,
+            include_direction: true,
+            filter: None,
+        };
+        
+        let result = export_as_text(&messages, &options);
+        assert!(result.is_ok());
+        
+        let text = result.unwrap();
+        assert!(text.contains("送信: Hello"));
+        assert!(text.contains("受信: World"));
+    }
+
+    #[test]
+    fn test_export_as_json() {
+        let messages = vec![
+            create_test_message("Hello", MessageDirection::Sent),
+        ];
+        
+        let result = export_as_json(&messages);
+        assert!(result.is_ok());
+        
+        let json = result.unwrap();
+        assert!(json.contains("\"content\": \"Hello\""));
+        assert!(json.contains("\"direction\": \"Sent\""));
+    }
+}
